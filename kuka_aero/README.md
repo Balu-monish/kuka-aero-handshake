@@ -21,4 +21,15 @@ Then Simulation -> Load key (`home`).
 Sequence: reach (fingers forward, thumb up) -> partner hand comes in -> grip -> 3 shakes
 -> release -> partner leaves -> back to home. Tunables are constants at the top of
 `handshake.py` (`SHAKE_PALM_WORLD`, `SHAKE_AMPLITUDE`, `SHAKE_FREQ`, `HAND_GRIP`, ...).
-The partner is a free body softly welded to a mocap target, so it gives a little when gripped.
+The partner (`partner_hand.py`) is an anatomical right hand: palm with thenar pad, four
+3-phalanx fingers, 3-segment thumb, wrist and sleeve. Its 15 finger joints have soft
+position actuators, so it grips back. It is softly welded to a scripted target while
+approaching/leaving and to the robot's hand while gripped (a relaxed arm going along with
+the shake). Its contacts are stiffer than the Aero Hand's soft defaults so a firm grip
+doesn't sink in.
+
+Record a video (needs `pip install "imageio[ffmpeg]"`):
+```
+..\.venv\Scripts\python handshake.py --record             # -> handshake.mp4
+..\.venv\Scripts\python handshake.py --record --cycles 3
+```

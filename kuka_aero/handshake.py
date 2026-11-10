@@ -3,7 +3,8 @@
   python handshake.py             # interactive viewer, loops the handshake
   python handshake.py --check     # headless run: prints tracking/grip metrics, saves handshake_frames.png
 
-The partner is a simple mocap-driven hand (palm + forearm) standing in for a person.
+The partner is an anatomical right hand (see partner_hand.py), softly welded to a mocap
+target so it gives a little, with finger actuators so it grips back.
 """
 
 import argparse
@@ -11,6 +12,9 @@ import os
 
 import mujoco
 import numpy as np
+
+from partner_hand import add_partner_hand
+from partner_hand import grip_targets as partner_grip_targets
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SCENE_XML = os.path.join(HERE, "scene.xml")
@@ -31,16 +35,14 @@ PALM_CENTER_LOCAL = np.array([0.11, 0.01, -0.01])   # palm face centre in bracke
 SHAKE_PALM_WORLD = np.array([0.62, 0.0, 0.55])       # where the palms meet
 SHAKE_MOUNT_POS = SHAKE_PALM_WORLD - SHAKE_ROT @ PALM_CENTER_LOCAL
 
-# Partner hand, in the robot bracket frame at the shake pose: a palm resting on the
-# robot's palm, its forearm running back along the robot's fingers.
-PARTNER_HALF = np.array([0.050, 0.042, 0.013])       # palm box half-sizes (bracket axes)
-PARTNER_LOCAL = np.array([0.115, 0.010, 0.023])      # palm box centre: resting on the palm face
-PARTNER_APPROACH = 0.25                              # m, start distance along +x world
+# Partner hand geometry lives in partner_hand.py (its frame = robot bracket frame at the
+# shake pose). It slides in from this far along +x world.
+PARTNER_APPROACH = 0.25                              # m
 
 # Hand actuators (tendon lengths): high = open, low = closed.
 # Order: index, middle, ring, pinky, thumb abduction, thumb flex 1, thumb flex 2.
 HAND_OPEN = np.array([0.11, 0.11, 0.11, 0.11, -0.1, 0.038, 0.112])     # thumb out of the way
-HAND_GRIP = np.array([0.059, 0.059, 0.059, 0.059, 1.2, 0.026, 0.082])  # wrap; contact stops it
+HAND_GRIP = np.array([0.059, 0.059, 0.059, 0.059, 0.5, 0.032, 0.095])  # wrap; contact stops it
 
 SHAKE_AMPLITUDE = 0.035   # m, vertical
 SHAKE_FREQ = 1.6          # Hz
@@ -59,29 +61,37 @@ def build_model() -> mujoco.MjModel:
     for body in spec.bodies:
         if body.name != "world":
             body.gravcomp = 1.0
-    # Partner hand: a free body softly welded to a mocap target, so it gives a little
-    # when gripped (like a person's hand) instead of being infinitely stiff.
-    # Body frame = robot bracket frame at the shake pose, so offsets read in bracket axes.
+    # Partner hand: a free body (frame = robot bracket frame at the shake pose) held by
+    # two soft welds that the script switches between:
+    #   partner_to_target: to a mocap target -> scripted approach / retreat
+    #   partner_to_robot:  to the robot bracket -> while gripped, the person's relaxed arm
+    #                      simply goes along with the shake (no fighting through contacts)
     spec.worldbody.add_body(name="partner_target", mocap=True)
     partner = spec.worldbody.add_body(name="partner", gravcomp=1.0)
     partner.add_freejoint(name="partner_free")
-    skin = [0.87, 0.70, 0.58, 1]
-    partner.add_geom(name="partner_palm", type=mujoco.mjtGeom.mjGEOM_BOX, pos=PARTNER_LOCAL,
-                     size=PARTNER_HALF, rgba=skin, density=900, friction=[1.0, 0.02, 0.001])
-    partner.add_geom(name="partner_forearm", type=mujoco.mjtGeom.mjGEOM_CAPSULE,
-                     fromto=[PARTNER_LOCAL[0] + PARTNER_HALF[0] + 0.03, PARTNER_LOCAL[1], PARTNER_LOCAL[2],
-                             PARTNER_LOCAL[0] + PARTNER_HALF[0] + 0.30, PARTNER_LOCAL[1], PARTNER_LOCAL[2]],
-                     size=[0.03, 0, 0], rgba=[0.25, 0.35, 0.55, 1], density=900,
-                     contype=0, conaffinity=0)
-    weld = spec.add_equality(type=mujoco.mjtEq.mjEQ_WELD, objtype=mujoco.mjtObj.mjOBJ_BODY,
-                             name1="partner", name2="partner_target", solref=[0.03, 1.0])
+    add_partner_hand(spec, partner)
+    # The Aero Hand's contacts are soft (tuned for 10 ms steps and light touches); a
+    # firm handshake would sink through them. Give the partner's geoms priority and
+    # stiffer contact parameters so every robot<->partner contact uses these.
+    for geom in spec.geoms:
+        if geom.name.startswith("partner"):
+            geom.priority = 1
+            geom.solref = [0.005, 1.0]
+            geom.solimp = [0.95, 0.99, 0.001, 0.5, 2.0]
     data = np.zeros(12)
     data[6], data[10] = 1.0, 1.0   # identity relative pose, torquescale 1
-    weld.data = data
+    for name, other in (("partner_to_target", "partner_target"), ("partner_to_robot", MOUNT)):
+        weld = spec.add_equality(name=name, type=mujoco.mjtEq.mjEQ_WELD,
+                                 objtype=mujoco.mjtObj.mjOBJ_BODY, name1="partner",
+                                 name2=other, solref=[0.01, 1.0])
+        weld.data = data
+        weld.active = name == "partner_to_target"
     # Extend the home keyframe with the partner's free joint (parked out of the way).
     key = spec.key("home")
     start = SHAKE_MOUNT_POS + np.array([PARTNER_APPROACH, 0, 0])
-    key.qpos = list(key.qpos) + list(start) + list(mat2quat(SHAKE_ROT))
+    n_partner = len(partner_grip_targets(0.0))
+    key.qpos = list(key.qpos) + list(start) + list(mat2quat(SHAKE_ROT)) + [0.0] * n_partner
+    key.ctrl = list(key.ctrl) + [0.0] * n_partner
     key.mpos = list(start)
     key.mquat = list(mat2quat(SHAKE_ROT))
     return spec.compile()
@@ -154,6 +164,12 @@ def solve_ik_global(m, d_ik, pos, quat, q_ref, seeds=200, rng_seed=0):
     return best
 
 
+def shake_offset(s):
+    """Vertical shake displacement at shake-phase progress s in [0, 1]."""
+    envelope = np.sin(np.pi * s) ** 0.5   # ease in/out of the pumping
+    return SHAKE_AMPLITUDE * envelope * np.sin(2 * np.pi * SHAKE_CYCLES * s)
+
+
 def nlerp(qa, qb, w):
     """Normalised quaternion interpolation (fine for the small angles used here)."""
     qb = qb if np.dot(qa, qb) >= 0 else -qb
@@ -173,6 +189,8 @@ class Handshake:
         self.d_ik = mujoco.MjData(m)
         self.q_shake = solve_ik_global(m, self.d_ik, SHAKE_MOUNT_POS, SHAKE_QUAT, ARM_HOME)
         self.q_last = self.q_shake.copy()
+        self.eq_target = m.equality("partner_to_target").id
+        self.eq_robot = m.equality("partner_to_robot").id
 
     def phase(self, t):
         t = t % CYCLE
@@ -196,8 +214,7 @@ class Handshake:
         elif name in ("shake", "hold"):
             hand = HAND_GRIP
             if name == "shake":
-                envelope = np.sin(np.pi * s) ** 0.5   # ease in/out of the pumping
-                dz = SHAKE_AMPLITUDE * envelope * np.sin(2 * np.pi * SHAKE_FREQ * s * PHASES[3][1])
+                dz = shake_offset(s)
         elif name == "release":
             hand = HAND_GRIP + smooth(s) * (HAND_OPEN - HAND_GRIP)
         elif name == "partner_out":
@@ -217,32 +234,27 @@ class Handshake:
         q, hand, ppos, pquat, name = self.targets(t)
         d.ctrl[:7] = q
         d.ctrl[7:14] = hand
-        self.partner_cmd = (ppos, pquat)
+        # Partner grips back on the same schedule as the robot hand.
+        _, s = self.phase(t)
+        level = {"grip": smooth(s), "shake": 1.0, "hold": 1.0, "release": 1.0 - smooth(s)}.get(name, 0.0)
+        d.ctrl[14:] = partner_grip_targets(level)
         return name
 
     def update_partner(self, d, t):
-        """Move the partner hand (call every physics step).
+        """Move the partner (call every physics step).
 
-        While gripped the partner is compliant: it moves with the robot hand rather than
-        fighting it, blended in during the grip so it doesn't jump.
+        Approach/retreat: welded to the scripted mocap target. Grip..release: welded to the
+        robot bracket, so the person's arm goes along with the shake. Both welds overlap
+        during grip and release for a smooth handover. (Driving the partner on its own
+        path while the fingers are interlocked makes them snag and jerk.)
         """
         name, s = self.phase(t)
-        ppos, pquat = self.partner_cmd
-        bid = self.m.body(MOUNT).id
-        apos, aquat = d.xpos[bid].copy(), d.xquat[bid].copy()
-        if name == "grip":
-            w = smooth(s)
-            ppos = ppos + w * (apos - ppos)
-            pquat = nlerp(pquat, aquat, w)
-        elif name in ("shake", "hold", "release"):
-            ppos, pquat = apos, aquat
-        if name == "release":
-            self.release_pose = (ppos.copy(), pquat.copy())
-        elif name == "partner_out" and hasattr(self, "release_pose"):
-            ppos = self.release_pose[0] + (ppos - SHAKE_MOUNT_POS)
-            pquat = self.release_pose[1]
-        d.mocap_pos[0] = ppos
-        d.mocap_quat[0] = pquat
+        approach = {"partner_in": 1.0 - smooth(s), "partner_out": smooth(s)}.get(
+            name, 0.0 if name in ("grip", "shake", "hold", "release") else 1.0)
+        d.mocap_pos[0] = SHAKE_MOUNT_POS + np.array([PARTNER_APPROACH * approach, 0, 0])
+        d.mocap_quat[0] = SHAKE_QUAT
+        d.eq_active[self.eq_target] = name not in ("shake", "hold")
+        d.eq_active[self.eq_robot] = name in ("grip", "shake", "hold", "release")
 
 
 def reset(m, d):
