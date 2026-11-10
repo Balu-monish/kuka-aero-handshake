@@ -17,8 +17,8 @@ NAIL = [0.93, 0.82, 0.78, 1]
 SLEEVE = [0.25, 0.35, 0.55, 1]
 
 # Palm layout (partner frame).
-PALM_CENTER = np.array([0.116, 0.012, 0.024])
-PALM_ANGLE = np.radians(55)        # fingers wrap down around the robot palm's pinky edge
+PALM_CENTER = np.array([0.150, 0.000, -0.006])  # inside the robot fingers' closing arc (searched)
+PALM_ANGLE = np.radians(90)        # palm crosses the robot palm; fingers wrap its pinky edge
 PALM_HALF = (0.046, 0.041, 0.012)  # half length (wrist->knuckles), half width, half thickness
 
 # name: (offset across palm from centre line [+ = thumb side], knuckle setback, splay deg,
@@ -30,10 +30,12 @@ FINGERS = {
     "pinky":  (-0.029, 0.012, -9, (0.032, 0.019, 0.017), 0.0078),
 }
 THUMB = ((0.040, 0.032, 0.026), 0.0105)   # metacarpal, proximal, distal; radius
+THUMB_LIFT = 0.012                         # m, thumb base raised off the palm plane
+THUMB_DIR = np.array([-0.4, -0.9, 0.0])   # over the top of the robot hand (None = along its thumb web)
 
 # Grip pose (rad) the actuators drive toward; contact with the robot hand stops them.
 GRIP_FINGER = (1.25, 1.2, 0.9)   # MCP, PIP, DIP
-GRIP_THUMB = (0.15, 0.35, 0.3)
+GRIP_THUMB = (0.45, 0.9, 0.7)    # curls down over the top of the robot hand
 
 KP = 0.35         # N*m/rad per joint: a firm-but-polite human grip (~5-8 N at the fingertips)
 JOINT_RANGE = (0.0, 1.65)
@@ -105,7 +107,7 @@ def add_partner_hand(spec: mujoco.MjSpec, body: mujoco.MjsBody, prefix="partner"
                   size=[T, 0, 0], rgba=SKIN, density=1100)
     # Thenar pad (thumb muscle) bulging on the palm side.
     body.add_geom(name=f"{prefix}_thenar", type=mujoco.mjtGeom.mjGEOM_ELLIPSOID,
-                  pos=C + t * 0.022 - u * 0.016 - np.array([0, 0, 0.004]), quat=palm_q,
+                  pos=C + t * 0.022 - u * 0.016, quat=palm_q,
                   size=[0.030, 0.017, 0.012], rgba=SKIN, density=1100)
 
     names = []
@@ -117,8 +119,8 @@ def add_partner_hand(spec: mujoco.MjSpec, body: mujoco.MjsBody, prefix="partner"
         names += [f"act_{prefix}_{fname}_{j}" for j in ("mcp", "pip", "dip")]
 
     # Thumb: from the thenar side, lying along the robot's index/thumb web toward its wrist.
-    tb = C + t * (W - 0.004) - u * 0.020
-    tdir = _unit(0.6 * t + 0.4 * u)
+    tb = C + t * (W - 0.004) - u * 0.020 + np.array([0, 0, THUMB_LIFT])
+    tdir = _unit(THUMB_DIR if THUMB_DIR is not None else 0.6 * t + 0.4 * u)
     _chain(body, f"{prefix}_thumb", tb, tdir, THUMB[0], THUMB[1], ("cmc", "mcp", "ip"), spec)
     names += [f"act_{prefix}_thumb_{j}" for j in ("cmc", "mcp", "ip")]
 
@@ -130,7 +132,7 @@ def add_partner_hand(spec: mujoco.MjSpec, body: mujoco.MjsBody, prefix="partner"
                   size=[0.022, 0, 0], rgba=SKIN, density=1000)
     body.add_geom(name=f"{prefix}_forearm", type=mujoco.mjtGeom.mjGEOM_CAPSULE,
                   fromto=np.concatenate([wrist + elbow_dir * 0.07, wrist + elbow_dir * 0.32]),
-                  size=[0.032, 0, 0], rgba=SLEEVE, density=600)
+                  size=[0.032, 0, 0], rgba=SLEEVE, density=250)   # light: less inertia in the shake
     return names
 
 
