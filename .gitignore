@@ -1,0 +1,8 @@
+# Python environment
+.venv/
+__pycache__/
+MUJOCO_LOG.TXT
+
+# Upstream model repos (cloned separately, see kuka_aero/README.md)
+aero-hand-open/
+mujoco_menagerie/

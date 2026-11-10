@@ -1,0 +1,785 @@
+<mujoco model="iiwa14_aero_hand_right">
+  <compiler angle="radian"/>
+
+  <option integrator="implicitfast"/>
+
+  <size nkey="1"/>
+
+  <statistic extent="1.2" center="0.4 0 0.5"/>
+
+  <visual>
+    <global azimuth="-140" elevation="-20" offwidth="1920" offheight="1080"/>
+    <quality shadowsize="8192"/>
+    <headlight ambient="0.3 0.3 0.3" diffuse="0.6 0.6 0.6"/>
+  </visual>
+
+  <default>
+    <default class="iiwa">
+      <material shininess="0.25"/>
+      <site size="0.001 0.005 0.005" group="4" rgba="1 0 0 1"/>
+      <general biastype="affine" gainprm="2000" biasprm="0 -2000 -200"/>
+      <default class="joint1">
+        <joint range="-2.96706 2.96706"/>
+        <general ctrlrange="-2.96706 2.96706"/>
+        <default class="joint2">
+          <joint range="-2.0944 2.0944"/>
+          <general ctrlrange="-2.0944 2.0944"/>
+        </default>
+      </default>
+      <default class="joint3">
+        <joint range="-3.05433 3.05433"/>
+        <general ctrlrange="-3.05433 3.05433"/>
+      </default>
+      <default class="visual">
+        <geom type="mesh" contype="0" conaffinity="0" group="2" material="gray"/>
+      </default>
+      <default class="collision">
+        <geom group="3"/>
+      </default>
+    </default>
+    <default class="hand_main">
+      <default class="hand_tetheria_rh">
+        <joint armature="0.00155913" damping="0.02" frictionloss="0.02" axis="0 0 -1"/>
+        <geom group="3" friction="0.2" solref="0.02 1.5" solimp="0.9 0.99"/>
+        <default class="hand_visual">
+          <geom type="mesh" contype="0" conaffinity="0" group="2" density="0" material="white"/>
+        </default>
+        <default class="hand_tip">
+          <geom size="0.01 0.012 0.016" type="box" friction="0.7 0.05 0.0002" rgba="0.5 0.5 0.5 0.3"/>
+        </default>
+        <default class="hand_thumb_tip">
+          <geom size="0.01 0.012 0.016" type="box" friction="0.7 0.05 0.0002" rgba="0.5 0.5 0.5 0.3"/>
+        </default>
+        <default class="hand_rot">
+          <joint range="0 1.5708" damping="0.1"/>
+          <general ctrlrange="-0.1 1.58" input="pos" biastype="affine" biasprm="0 -1"/>
+        </default>
+        <default class="hand_pip">
+          <joint range="0 1.5708" damping="0.05"/>
+          <general ctrlrange="-0.1 1.58" input="pos" biastype="affine" biasprm="0 -1"/>
+        </default>
+        <default class="hand_dip">
+          <joint range="0 1.5708" damping="0.05"/>
+          <general ctrlrange="-0.1 1.58" input="pos" biastype="affine" biasprm="0 -1"/>
+        </default>
+        <default class="hand_thumb_cmc">
+          <joint range="0 1.7453"/>
+          <general ctrlrange="-0.1 1.75" input="pos" biastype="affine" biasprm="0 -1"/>
+        </default>
+        <default class="hand_thumb_axl">
+          <joint range="0 1.4"/>
+          <general ctrlrange="-0.1 1.5" input="pos" biastype="affine" biasprm="0 -1"/>
+        </default>
+        <default class="hand_thumb_mcp">
+          <joint range="0 1.2217"/>
+          <general ctrlrange="-0.1 1.3" input="pos" biastype="affine" biasprm="0 -1"/>
+        </default>
+        <default class="hand_thumb_ipl">
+          <joint range="0 1.2217"/>
+          <general ctrlrange="-0.1 1.3" input="pos" biastype="affine" biasprm="0 -1"/>
+        </default>
+        <default class="hand_cmc_spring">
+
+          <tendon group="2" width="0.001" stiffness="1897" rgba="0 0.5 0.5 1" springlength="0.013"/>
+        </default>
+        <default class="hand_distal_spring">
+
+          <tendon group="2" width="0.001" stiffness="4000" rgba="0.5 0.5 0 1" springlength="0.021336"/>
+        </default>
+        <default class="hand_mcp_spring">
+
+          <tendon group="2" width="0.001" stiffness="352" rgba="0 0.5 0.5 1" springlength="0.011376"/>
+        </default>
+        <default class="hand_mcp_tendon">
+
+          <tendon group="2" width="0.001" rgba="1 0 0 1"/>
+        </default>
+        <default class="hand_flex_tendon">
+
+          <tendon group="2" width="0.001" rgba="0 0 1 1"/>
+        </default>
+      </default>
+    </default>
+  </default>
+
+  <asset>
+    <texture type="skybox" colorspace="auto" name="skybox" builtin="gradient" rgb1="0.3 0.5 0.7" rgb2="0 0 0" width="512" height="3072"/>
+    <texture type="2d" colorspace="auto" name="groundplane" builtin="checker" mark="edge" rgb1="0.2 0.3 0.4" rgb2="0.1 0.2 0.3" markrgb="0.8 0.8 0.8" width="300" height="300"/>
+    <material name="gray" class="iiwa" rgba="0.4 0.4 0.4 1"/>
+    <material name="light_gray" class="iiwa" rgba="0.6 0.6 0.6 1"/>
+    <material name="black" class="iiwa" rgba="0 0 0 1"/>
+    <material name="orange" class="iiwa" rgba="1 0.423529 0.0392157 1"/>
+    <material name="hand_black" rgba="0.2 0.2 0.2 1"/>
+    <material name="hand_gray" rgba="0.5 0.5 0.5 1"/>
+    <material name="hand_white" rgba="0.7 0.7 0.7 1"/>
+    <material name="groundplane" texture="groundplane" texrepeat="5 5" texuniform="true" reflectance="0.2"/>
+    <mesh name="link_0" content_type="model/obj" file="../mujoco_menagerie/kuka_iiwa_14/assets/link_0.obj"/>
+    <mesh name="link_1" content_type="model/obj" file="../mujoco_menagerie/kuka_iiwa_14/assets/link_1.obj"/>
+    <mesh name="link_2_orange" content_type="model/obj" file="../mujoco_menagerie/kuka_iiwa_14/assets/link_2_orange.obj"/>
+    <mesh name="link_2_grey" content_type="model/obj" file="../mujoco_menagerie/kuka_iiwa_14/assets/link_2_grey.obj"/>
+    <mesh name="link_3" content_type="model/obj" file="../mujoco_menagerie/kuka_iiwa_14/assets/link_3.obj"/>
+    <mesh name="band" content_type="model/obj" file="../mujoco_menagerie/kuka_iiwa_14/assets/band.obj"/>
+    <mesh name="kuka" content_type="model/obj" file="../mujoco_menagerie/kuka_iiwa_14/assets/kuka.obj"/>
+    <mesh name="link_4_orange" content_type="model/obj" file="../mujoco_menagerie/kuka_iiwa_14/assets/link_4_orange.obj"/>
+    <mesh name="link_4_grey" content_type="model/obj" file="../mujoco_menagerie/kuka_iiwa_14/assets/link_4_grey.obj"/>
+    <mesh name="link_5" content_type="model/obj" file="../mujoco_menagerie/kuka_iiwa_14/assets/link_5.obj"/>
+    <mesh name="link_6_orange" content_type="model/obj" file="../mujoco_menagerie/kuka_iiwa_14/assets/link_6_orange.obj"/>
+    <mesh name="link_6_grey" content_type="model/obj" file="../mujoco_menagerie/kuka_iiwa_14/assets/link_6_grey.obj"/>
+    <mesh name="link_7" content_type="model/obj" file="../mujoco_menagerie/kuka_iiwa_14/assets/link_7.obj"/>
+    <mesh name="hand_tetheria_mount" content_type="model/stl" file="../aero-hand-open/sim_rl/simulation/mujoco/assets/right_palm_mount_link.STL"/>
+    <mesh name="hand_right_frame_link" content_type="model/stl" file="../aero-hand-open/sim_rl/simulation/mujoco/assets/base_link.STL"/>
+    <mesh name="hand_right_index_f_link" content_type="model/stl" file="../aero-hand-open/sim_rl/simulation/mujoco/assets/right_index_f_link.STL"/>
+    <mesh name="hand_right_index_proximal_link" content_type="model/stl" file="../aero-hand-open/sim_rl/simulation/mujoco/assets/right_index_proximal_link.STL"/>
+    <mesh name="hand_right_index_middle_link" content_type="model/stl" file="../aero-hand-open/sim_rl/simulation/mujoco/assets/right_index_middle_link.STL"/>
+    <mesh name="hand_right_index_distal_link" content_type="model/stl" file="../aero-hand-open/sim_rl/simulation/mujoco/assets/right_index_distal_link.STL"/>
+    <mesh name="hand_right_index_tip_link" content_type="model/stl" file="../aero-hand-open/sim_rl/simulation/mujoco/assets/right_index_tip_link.STL"/>
+    <mesh name="hand_right_middle_f_link" content_type="model/stl" file="../aero-hand-open/sim_rl/simulation/mujoco/assets/right_middle_f_link.STL"/>
+    <mesh name="hand_right_middle_proximal_link" content_type="model/stl" file="../aero-hand-open/sim_rl/simulation/mujoco/assets/right_middle_proximal_link.STL"/>
+    <mesh name="hand_right_middle_middle_link" content_type="model/stl" file="../aero-hand-open/sim_rl/simulation/mujoco/assets/right_middle_middle_link.STL"/>
+    <mesh name="hand_right_middle_distal_link" content_type="model/stl" file="../aero-hand-open/sim_rl/simulation/mujoco/assets/right_middle_distal_link.STL"/>
+    <mesh name="hand_right_middle_tip_link" content_type="model/stl" file="../aero-hand-open/sim_rl/simulation/mujoco/assets/right_middle_tip_link.STL"/>
+    <mesh name="hand_right_ring_f_link" content_type="model/stl" file="../aero-hand-open/sim_rl/simulation/mujoco/assets/right_ring_f_link.STL"/>
+    <mesh name="hand_right_ring_proximal_link" content_type="model/stl" file="../aero-hand-open/sim_rl/simulation/mujoco/assets/right_ring_proximal_link.STL"/>
+    <mesh name="hand_right_ring_middle_link" content_type="model/stl" file="../aero-hand-open/sim_rl/simulation/mujoco/assets/right_ring_middle_link.STL"/>
+    <mesh name="hand_right_ring_distal_link" content_type="model/stl" file="../aero-hand-open/sim_rl/simulation/mujoco/assets/right_ring_distal_link.STL"/>
+    <mesh name="hand_right_ring_tip_link" content_type="model/stl" file="../aero-hand-open/sim_rl/simulation/mujoco/assets/right_ring_tip_link.STL"/>
+    <mesh name="hand_right_pinky_f_link" content_type="model/stl" file="../aero-hand-open/sim_rl/simulation/mujoco/assets/right_pinky_f_link.STL"/>
+    <mesh name="hand_right_pinky_proximal_link" content_type="model/stl" file="../aero-hand-open/sim_rl/simulation/mujoco/assets/right_pinky_proximal_link.STL"/>
+    <mesh name="hand_right_pinky_middle_link" content_type="model/stl" file="../aero-hand-open/sim_rl/simulation/mujoco/assets/right_pinky_middle_link.STL"/>
+    <mesh name="hand_right_pinky_distal_link" content_type="model/stl" file="../aero-hand-open/sim_rl/simulation/mujoco/assets/right_pinky_distal_link.STL"/>
+    <mesh name="hand_right_pinky_tip_link" content_type="model/stl" file="../aero-hand-open/sim_rl/simulation/mujoco/assets/right_pinky_tip_link.STL"/>
+    <mesh name="hand_right_t_link" content_type="model/stl" file="../aero-hand-open/sim_rl/simulation/mujoco/assets/right_t_link.STL"/>
+    <mesh name="hand_right_thumb_mcp_link" content_type="model/stl" file="../aero-hand-open/sim_rl/simulation/mujoco/assets/right_thumb_mcp_link.STL"/>
+    <mesh name="hand_right_thumb_proximal_link" content_type="model/stl" file="../aero-hand-open/sim_rl/simulation/mujoco/assets/right_thumb_proximal_link.STL"/>
+    <mesh name="hand_right_thumb_distal_link" content_type="model/stl" file="../aero-hand-open/sim_rl/simulation/mujoco/assets/right_thumb_distal_link.STL"/>
+    <mesh name="hand_right_thumb_tip_link" content_type="model/stl" file="../aero-hand-open/sim_rl/simulation/mujoco/assets/right_thumb_tip_link.STL"/>
+  </asset>
+
+  <worldbody>
+    <geom name="floor" size="0 0 0.05" type="plane" material="groundplane"/>
+    <light pos="0 0 2"/>
+    <light pos="0 0 1.5" type="directional"/>
+    <body name="base" childclass="iiwa">
+      <inertial pos="-0.1 0 0.07" mass="5" diaginertia="0.05 0.06 0.03"/>
+      <geom class="visual" pos="1.00614e-16 2.59404e-21 -5.68989e-16" quat="1 0 0 0" mesh="link_0"/>
+      <geom class="collision" size="0.12" pos="0 0 0.03"/>
+      <geom class="collision" size="0.08" pos="-0.08 0 0.103"/>
+      <geom class="collision" size="0.08" pos="-0.08 0 0.04"/>
+      <geom class="collision" size="0.1" pos="0 0 0.14"/>
+      <body name="link1" pos="0 0 0.1575">
+        <inertial pos="0 -0.03 0.12" mass="5.76" diaginertia="0.0333 0.033 0.0123"/>
+        <joint name="joint1" class="joint1"/>
+        <geom class="visual" pos="4.23516e-21 7.63278e-17 -2.77556e-16" quat="1 0 0 0" mesh="link_1"/>
+        <geom class="collision" size="0.08" pos="0 0 -0.0005"/>
+        <geom class="collision" size="0.075" pos="0.01 -0.025 0.0425"/>
+        <geom class="collision" size="0.075" pos="-0.01 -0.025 0.0425"/>
+        <geom class="collision" size="0.07" pos="0.01 -0.045 0.1025"/>
+        <geom class="collision" size="0.07" pos="-0.01 -0.045 0.1025"/>
+        <body name="link2" pos="0 0 0.2025" quat="0 0 0.707107 0.707107">
+          <inertial pos="0.0003 0.059 0.042" quat="0 0 0.707107 0.707107" mass="6.35" diaginertia="0.0305 0.0304 0.011"/>
+          <joint name="joint2" class="joint2"/>
+          <geom class="visual" pos="-4.84926e-18 9.1073e-18 -5.82867e-16" quat="1 0 0 0" material="orange" mesh="link_2_orange"/>
+          <geom class="visual" pos="-2.71051e-18 -6.38378e-16 -9.54098e-17" quat="1 0 0 0" mesh="link_2_grey"/>
+          <geom class="collision" size="0.095" pos="0 0 -0.01"/>
+          <geom class="collision" size="0.09" pos="0 0 0.045"/>
+          <geom class="collision" size="0.07" pos="-0.01 0.04 0.054"/>
+          <geom class="collision" size="0.065" pos="-0.01 0.09 0.04"/>
+          <geom class="collision" size="0.065" pos="-0.01 0.13 0.02"/>
+          <geom class="collision" size="0.07" pos="0.01 0.04 0.054"/>
+          <geom class="collision" size="0.065" pos="0.01 0.09 0.04"/>
+          <geom class="collision" size="0.065" pos="0.01 0.13 0.02"/>
+          <geom class="collision" size="0.075" pos="0 0.18 0"/>
+          <body name="link3" pos="0 0.2045 0" quat="0 0 0.707107 0.707107">
+            <inertial pos="0 0.03 0.13" mass="3.5" diaginertia="0.025 0.0238 0.0076"/>
+            <joint name="joint3" class="joint1"/>
+            <geom class="visual" pos="1.8891e-18 -9.02056e-17 -3.60822e-16" quat="1 0 0 0" mesh="link_3"/>
+            <geom class="visual" quat="1 0 0 0" material="light_gray" mesh="band"/>
+            <geom class="visual" quat="1 0 0 0" material="black" mesh="kuka"/>
+            <geom class="collision" size="0.075" pos="0 0 0.0355"/>
+            <geom class="collision" size="0.06" pos="0.01 0.023 0.0855"/>
+            <geom class="collision" size="0.055" pos="0.01 0.048 0.1255"/>
+            <geom class="collision" size="0.06" pos="0.01 0.056 0.1755"/>
+            <geom class="collision" size="0.06" pos="-0.01 0.023 0.0855"/>
+            <geom class="collision" size="0.055" pos="-0.01 0.048 0.1255"/>
+            <geom class="collision" size="0.06" pos="-0.01 0.056 0.1755"/>
+            <geom class="collision" size="0.075" pos="0 0.045 0.2155"/>
+            <geom class="collision" size="0.075" pos="0 0 0.2155"/>
+            <body name="link4" pos="0 0 0.2155" quat="0.707107 0.707107 0 0">
+              <inertial pos="0 0.067 0.034" quat="0.707107 0.707107 0 0" mass="3.5" diaginertia="0.017 0.0164 0.006"/>
+              <joint name="joint4" class="joint2"/>
+              <geom class="visual" pos="-2.5411e-20 -4.16334e-17 -4.30211e-16" quat="1 0 0 0" material="orange" mesh="link_4_orange"/>
+              <geom class="visual" pos="-7.16484e-19 -4.85723e-16 -6.41848e-17" quat="1 0 0 0" mesh="link_4_grey"/>
+              <geom class="collision" size="0.078" pos="0 0.01 0.046"/>
+              <geom class="collision" size="0.06" pos="0.01 0.06 0.052"/>
+              <geom class="collision" size="0.065" pos="0.01 0.12 0.034"/>
+              <geom class="collision" size="0.06" pos="-0.01 0.06 0.052"/>
+              <geom class="collision" size="0.065" pos="-0.01 0.12 0.034"/>
+              <geom class="collision" size="0.075" pos="0 0.184 0"/>
+              <body name="link5" pos="0 0.1845 0" quat="0 0 0.707107 0.707107">
+                <inertial pos="0.0001 0.021 0.076" mass="3.5" diaginertia="0.01 0.0087 0.00449"/>
+                <joint name="joint5" class="joint1"/>
+                <geom class="visual" quat="1 0 0 0" mesh="link_5"/>
+                <geom class="visual" quat="1 0 0 0" material="light_gray" mesh="band"/>
+                <geom class="visual" quat="1 0 0 0" material="black" mesh="kuka"/>
+                <geom class="collision" size="0.075" pos="0 0 0.0335"/>
+                <geom class="collision" size="0.05" pos="-0.012 0.031 0.0755"/>
+                <geom class="collision" size="0.05" pos="0.012 0.031 0.0755"/>
+                <geom class="collision" size="0.04" pos="-0.012 0.06 0.1155"/>
+                <geom class="collision" size="0.04" pos="0.012 0.06 0.1155"/>
+                <geom class="collision" size="0.04" pos="-0.01 0.065 0.1655"/>
+                <geom class="collision" size="0.04" pos="0.01 0.065 0.1655"/>
+                <geom class="collision" size="0.035" pos="-0.012 0.065 0.1855"/>
+                <geom class="collision" size="0.035" pos="0.012 0.065 0.1855"/>
+                <body name="link6" pos="0 0 0.2155" quat="0.707107 0.707107 0 0">
+                  <inertial pos="0 0.0006 0.0004" quat="0.707107 0.707107 0 0" mass="1.8" diaginertia="0.0049 0.0047 0.0036"/>
+                  <joint name="joint6" class="joint2"/>
+                  <geom class="visual" quat="1 0 0 0" material="orange" mesh="link_6_orange"/>
+                  <geom class="visual" quat="1 0 0 0" mesh="link_6_grey"/>
+                  <geom class="collision" size="0.055" pos="0 0 -0.059"/>
+                  <geom class="collision" size="0.065" pos="0 -0.03 0.011"/>
+                  <geom class="collision" size="0.08"/>
+                  <body name="link7" pos="0 0.081 0" quat="0 0 0.707107 0.707107">
+                    <inertial pos="0 0 0.02" mass="1.2" diaginertia="0.001 0.001 0.001"/>
+                    <joint name="joint7" class="joint3"/>
+                    <geom class="visual" quat="1 0 0 0" mesh="link_7"/>
+                    <geom class="collision" size="0.06" pos="0 0 0.001"/>
+                    <site name="attachment_site" pos="0 0 0.045"/>
+                    <frame pos="0.009 -0.01 0.067" quat="0.707107 0 -0.707107 0">
+                      <body name="hand_tetheria_mount" childclass="hand_tetheria_rh">
+                        <geom name="hand_tetheria_mount_visual" class="hand_visual" pos="0.04 0.01 -0.012" quat="0.410475 -0.57577 0.57577 -0.410475" material="hand_white" mesh="hand_tetheria_mount"/>
+                        <geom name="hand_tetheria_mount_collision_0" size="0.002 0.025 0.005" pos="0.0405 0.02 0.009" quat="0.573462 0 0.819232 0" type="box"/>
+                        <geom name="hand_tetheria_mount_collision_1" size="0.005 0.01 0.005" pos="0.045 0.053 0.002" quat="0.498717 0.64994 -0.349102 0.454958" type="box"/>
+                        <site name="hand_grasp_site" pos="0.11 0 0.03" group="4"/>
+                        <body name="hand_palm" pos="0.04 0.01 -0.015" quat="0.405606 -0.579209 0.579209 -0.405606">
+                          <geom class="hand_visual" quat="1 0 0 0" material="hand_white" mesh="hand_right_frame_link"/>
+                          <geom name="hand_palm_collision_1" size="0.006 0.006 0.006" pos="0.031 -0.0045 0.096" quat="-0.5 -0.5 -0.5 0.5" type="box"/>
+                          <geom name="hand_palm_collision_2" size="0.006 0.006 0.006" pos="0.009 -0.0045 0.096" quat="-0.5 -0.5 -0.5 0.5" type="box"/>
+                          <geom name="hand_palm_collision_3" size="0.006 0.006 0.006" pos="-0.014 -0.0045 0.096" quat="-0.5 -0.5 -0.5 0.5" type="box"/>
+                          <geom name="hand_palm_collision_4" size="0.006 0.006 0.006" pos="-0.036 -0.0045 0.081" quat="-0.5 -0.5 -0.5 0.5" type="box"/>
+                          <geom name="hand_palm_collision_5" size="0.029 0.01 0.023" pos="-0.028 -0.0015 0.034" quat="0.420605 -0.420605 -0.568411 -0.568411" type="box"/>
+                          <geom name="hand_palm_collision_6" size="0.016 0.044 0.015" pos="0 0.007 0.07" quat="-0.5 -0.5 -0.5 0.5" type="box"/>
+                          <geom name="hand_palm_collision_7" size="0.0071 0.042 0.013" pos="0.002 -0.014 0.0745" quat="0.701026 -0.0925349 -0.0925349 -0.701026" type="box"/>
+                          <geom name="hand_palm_collision_8" size="0.012 0.042 0.023" pos="0.002 -0.0015 0.052" quat="-0.5 -0.5 -0.5 0.5" type="box"/>
+                          <geom name="hand_palm_collision_9" size="0.022 0.02 0.023" pos="-0.003 -0.0015 0.022" quat="-0.5 -0.5 -0.5 0.5" type="box"/>
+                          <geom name="hand_palm_collision_10" size="0.002 0.018 0.017" pos="0.041 0.004 0.002" quat="-0.5 -0.5 -0.5 0.5" type="box"/>
+                          <geom name="hand_palm_collision_11" size="0.022 0.028 0.002" pos="0.047 0.02 0.022" quat="-0.5 -0.5 -0.5 0.5" type="box"/>
+                          <site name="hand_palm_collision_1" size="0.0001" pos="0.031 -0.017 0.076" group="3"/>
+                          <site name="hand_palm_collision_2" size="0.0001" pos="0.009 -0.017 0.076" group="3"/>
+                          <site name="hand_palm_collision_3" size="0.0001" pos="-0.014 -0.017 0.076" group="3"/>
+                          <site name="hand_palm_collision_4" size="0.0001" pos="-0.036 -0.017 0.061" group="3"/>
+                          <body name="hand_right_index_f_link" pos="0.031448 -0.004172 0.10003" quat="0.999505 0.000456857 0.026173 -0.0174466">
+                            <inertial pos="0 0 0.0017" mass="0.000169697" diaginertia="1.29009e-09 1.29009e-09 7.6801e-10"/>
+                            <geom class="hand_visual" material="hand_white" mesh="hand_right_index_f_link"/>
+                            <geom name="hand_if_f_spring1_g0" class="hand_visual" size="0.003 0.005" pos="0 0 0.0029" quat="0.707107 0 -0.707107 0" type="cylinder" rgba="0 1 0 1" material="hand_white"/>
+                            <site name="hand_if_f_spring1_s1" size="0.0005" pos="0 0.005 0" group="4"/>
+                            <body name="hand_right_index_proximal_link" pos="0 0 0.0034">
+                              <inertial pos="-6.14568e-08 -0.00357858 0.0205176" quat="0.706858 0.0179374 -0.0179385 0.7069" mass="0.00600337" diaginertia="8.89988e-07 8.65278e-07 2.05352e-07"/>
+                              <joint name="hand_right_index_mcp_flex" class="hand_rot" axis="1 0 0"/>
+                              <geom class="hand_visual" material="hand_white" mesh="hand_right_index_proximal_link"/>
+                              <geom size="0.006 0.006 0.013" pos="0 -0.003 0.019" type="box"/>
+                              <geom name="hand_if_proximal_tendon0_g0" class="hand_visual" size="0.0025 0.005" pos="0 -0.0075 0.0095" quat="0.707107 0 -0.707107 0" type="cylinder" rgba="0 1 0 1" material="hand_white"/>
+                              <geom name="hand_if_proximal_tendon2" class="hand_visual" size="0.0025 0.005" pos="0 -0.0057 0.0173" quat="0.707107 0 -0.707107 0" type="cylinder" rgba="0 1 0 1" material="hand_white"/>
+                              <geom name="hand_if_proximal_tendon3" class="hand_visual" size="0.0025 0.005" pos="0 -0.0057 0.0323" quat="0.707107 0 -0.707107 0" type="cylinder" rgba="0 1 0 1" material="hand_white"/>
+                              <geom name="hand_if_proximal_tendon1_g0" class="hand_visual" size="0.003 0.005" pos="0 -0.0018 0.043" quat="0.707107 0 -0.707107 0" type="cylinder" rgba="0 1 0 1" material="hand_white"/>
+                              <site name="hand_if_proximal_tendon0_s0" size="0.0001" pos="0 -0.011 0.0095" group="4"/>
+                              <site name="hand_if_proximal_tendon0_s1" size="0.0001" pos="0 -0.0063 0.0135" group="4"/>
+                              <site name="hand_if_proximal_tendon0_s2" size="0.0001" pos="0 -0.0022 0.0173" group="4"/>
+                              <site name="hand_if_proximal_tendon0_s3" size="0.0001" pos="0 -0.0025 0.03" group="4"/>
+                              <site name="hand_if_proximal_tendon0_s4" size="0.0001" pos="0 -0.0025 0.0333" group="4"/>
+                              <site name="hand_if_proximal_tendon1_s0" size="0.0001" pos="0 -0.0048 0.04" group="4"/>
+                              <site name="hand_if_proximal_tendon1_s1" size="0.0001" pos="0 0.0012 0.035" group="4"/>
+                              <site name="hand_if_proximal_spring0_s0" size="0.0005" pos="0 0.0012 0.011" group="4"/>
+                              <site name="hand_if_proximal_spring0_s1" size="0.0005" pos="0 0.0012 0.04" group="4"/>
+                              <site name="hand_if_proximal_spring1_s0" size="0.0005" pos="0 0.003 0.004" group="4"/>
+                              <body name="hand_right_index_middle_link" pos="0 -0.0014554 0.043" quat="0.999962 0.00872639 0 0">
+                                <inertial pos="2.38785e-08 -0.00110516 0.00939619" quat="0.706833 -0.0191908 0.0192032 0.70686" mass="0.0023759" diaginertia="1.62521e-07 1.35575e-07 7.42871e-08"/>
+                                <joint name="hand_right_index_pip" class="hand_pip" axis="1 0 0"/>
+                                <geom class="hand_visual" quat="1 0 0 0" material="hand_white" mesh="hand_right_index_middle_link"/>
+                                <geom size="0.006 0.005 0.01" pos="0 -0.001 0.006" type="box"/>
+                                <site name="hand_if_middle_spring0_s0" size="0.0005" pos="0 0.004 0.003" group="4"/>
+                                <body name="hand_right_index_distal_link" pos="0 0.00036966 0.021997" quat="1 0.00052935 0 0">
+                                  <inertial pos="-0.00184412 0.000358323 0.0107277" quat="0.696253 -0.184428 0.0500635 0.69189" mass="0.00309312" diaginertia="1.89064e-07 1.75544e-07 6.39413e-08"/>
+                                  <joint name="hand_right_index_dip" class="hand_dip" axis="1 0 0"/>
+                                  <geom class="hand_visual" quat="1 0 0 0" material="hand_white" mesh="hand_right_index_distal_link"/>
+                                  <geom class="hand_visual" pos="0 0.0033789 0.024944" quat="0.999999 -0.0015829 0 0" material="hand_white" mesh="hand_right_index_tip_link"/>
+                                  <geom name="hand_if_tip" size="0.005 0.005 0.01" pos="0 -0.003 0.014" type="box"/>
+                                  <geom name="hand_if_dip_tendon0_g0" class="hand_visual" size="0.0025 0.005" pos="0 -0.006 0.002" quat="0.707107 0 -0.707107 0" type="cylinder" rgba="0 1 0 1" material="hand_white"/>
+                                  <geom name="hand_if_dip_tendon1_g0" class="hand_visual" size="0.0025 0.005" quat="0.707107 0 -0.707107 0" type="cylinder" rgba="0 1 0 1" material="hand_white"/>
+                                  <site name="hand_if_tip" pos="0 -0.003 0.023" group="4"/>
+                                  <site name="hand_if_dip_tendon0_s0" size="0.0001" pos="0 -0.0086 0.003" group="4"/>
+                                  <site name="hand_if_dip_tendon0_s2" size="0.0001" pos="0 -0.0015 0.0075" group="4"/>
+                                  <site name="hand_if_dip_tendon1_s0" size="0.0001" pos="0 0.0025 0.015" group="4"/>
+                                  <site name="hand_if_dip_tendon1_s1" size="0.0001" pos="0 0.0025 -0.002" group="4"/>
+                                </body>
+                              </body>
+                            </body>
+                          </body>
+                          <body name="hand_right_middle_f_link" pos="0.0085 -0.003 0.10061">
+                            <inertial pos="0 0 0.0017" mass="0.000169697" diaginertia="1.29009e-09 1.29009e-09 7.6801e-10"/>
+                            <geom class="hand_visual" material="hand_white" mesh="hand_right_middle_f_link"/>
+                            <geom name="hand_mf_f_spring1_g0" class="hand_visual" size="0.003 0.005" pos="0 0 0.0029" quat="0.707107 0 -0.707107 0" type="cylinder" rgba="0 1 0 1" material="hand_white"/>
+                            <site name="hand_mf_f_spring1_s1" size="0.0005" pos="0 0.005 0" group="4"/>
+                            <body name="hand_right_middle_proximal_link" pos="0 0 0.0034">
+                              <inertial pos="-5.79907e-08 -0.00357858 0.0205176" quat="0.706861 0.0179374 -0.0179384 0.706897" mass="0.00600338" diaginertia="8.89988e-07 8.65279e-07 2.05352e-07"/>
+                              <joint name="hand_right_middle_mcp_flex" class="hand_rot" axis="1 0 0"/>
+                              <geom class="hand_visual" material="hand_white" mesh="hand_right_middle_proximal_link"/>
+                              <geom size="0.006 0.006 0.013" pos="0 -0.003 0.019" type="box"/>
+                              <geom name="hand_mf_proximal_tendon0_g0" class="hand_visual" size="0.0025 0.005" pos="0 -0.0075 0.0095" quat="0.707107 0 -0.707107 0" type="cylinder" rgba="0 1 0 1" material="hand_white"/>
+                              <geom name="hand_mf_proximal_tendon2" class="hand_visual" size="0.0025 0.005" pos="0 -0.0057 0.0173" quat="0.707107 0 -0.707107 0" type="cylinder" rgba="0 1 0 1" material="hand_white"/>
+                              <geom name="hand_mf_proximal_tendon3" class="hand_visual" size="0.0025 0.005" pos="0 -0.0057 0.0323" quat="0.707107 0 -0.707107 0" type="cylinder" rgba="0 1 0 1" material="hand_white"/>
+                              <geom name="hand_mf_proximal_tendon1_g0" class="hand_visual" size="0.003 0.005" pos="0 -0.0018 0.043" quat="0.707107 0 -0.707107 0" type="cylinder" rgba="0 1 0 1" material="hand_white"/>
+                              <site name="hand_mf_proximal_tendon0_s0" size="0.0001" pos="0 -0.011 0.0125" group="4"/>
+                              <site name="hand_mf_proximal_tendon0_s1" size="0.0001" pos="0 -0.0063 0.0135" group="4"/>
+                              <site name="hand_mf_proximal_tendon0_s2" size="0.0001" pos="0 -0.0022 0.0173" group="4"/>
+                              <site name="hand_mf_proximal_tendon0_s3" size="0.0001" pos="0 -0.0025 0.0333" group="4"/>
+                              <site name="hand_mf_proximal_tendon0_s4" size="0.0001" pos="0 -0.0025 0.0333" group="4"/>
+                              <site name="hand_mf_proximal_tendon1_s0" size="0.0001" pos="0 -0.0048 0.04" group="4"/>
+                              <site name="hand_mf_proximal_tendon1_s1" size="0.0001" pos="0 0.0012 0.035" group="4"/>
+                              <site name="hand_mf_proximal_spring0_s0" size="0.0005" pos="0 0.0012 0.011" group="4"/>
+                              <site name="hand_mf_proximal_spring0_s1" size="0.0005" pos="0 0.0012 0.04" group="4"/>
+                              <site name="hand_mf_proximal_spring1_s0" size="0.0005" pos="0 0.003 0.004" group="4"/>
+                              <body name="hand_right_middle_middle_link" pos="0 -0.0014554 0.043" quat="0.999962 0.00872639 0 0">
+                                <inertial pos="9.42153e-09 -0.00110516 0.00939618" quat="0.706832 -0.0191899 0.0192034 0.706861" mass="0.0023759" diaginertia="1.62521e-07 1.35575e-07 7.42872e-08"/>
+                                <joint name="hand_right_middle_pip" class="hand_pip" axis="1 0 0"/>
+                                <geom class="hand_visual" quat="1 0 0 0" material="hand_white" mesh="hand_right_middle_middle_link"/>
+                                <geom size="0.006 0.005 0.01" pos="0 -0.001 0.006" type="box"/>
+                                <site name="hand_mf_middle_spring0_s0" size="0.0005" pos="0 0.004 0.003" group="4"/>
+                                <body name="hand_right_middle_distal_link" pos="0 0.00036966 0.021997" quat="1 0.00052935 0 0">
+                                  <inertial pos="-0.00184407 0.000358307 0.0107282" quat="0.696243 -0.184422 0.0500631 0.691902" mass="0.00309312" diaginertia="1.89075e-07 1.75556e-07 6.39407e-08"/>
+                                  <joint name="hand_right_middle_dip" class="hand_dip" axis="1 0 0"/>
+                                  <geom class="hand_visual" quat="1 0 0 0" material="hand_white" mesh="hand_right_middle_distal_link"/>
+                                  <geom class="hand_visual" pos="0 0.0033789 0.024944" quat="0.999999 -0.0015829 0 0" material="hand_white" mesh="hand_right_middle_tip_link"/>
+                                  <geom name="hand_mf_tip" size="0.005 0.005 0.01" pos="0 -0.003 0.014" type="box"/>
+                                  <geom name="hand_mf_dip_tendon0_g0" class="hand_visual" size="0.0025 0.005" pos="0 -0.006 0.002" quat="0.707107 0 -0.707107 0" type="cylinder" rgba="0 1 0 1" material="hand_white"/>
+                                  <geom name="hand_mf_dip_tendon1_g0" class="hand_visual" size="0.0025 0.005" quat="0.707107 0 -0.707107 0" type="cylinder" rgba="0 1 0 1" material="hand_white"/>
+                                  <site name="hand_mf_tip" pos="0 -0.003 0.023" group="4"/>
+                                  <site name="hand_mf_dip_tendon0_s0" size="0.0001" pos="0 -0.0086 0.003" group="4"/>
+                                  <site name="hand_mf_dip_tendon0_s2" size="0.0001" pos="0 -0.0015 0.0075" group="4"/>
+                                  <site name="hand_mf_dip_tendon1_s0" size="0.0001" pos="0 0.0025 0.015" group="4"/>
+                                  <site name="hand_mf_dip_tendon1_s1" size="0.0001" pos="0 0.0025 -0.002" group="4"/>
+                                </body>
+                              </body>
+                            </body>
+                          </body>
+                          <body name="hand_right_ring_f_link" pos="-0.014448 -0.004172 0.10003" quat="0.999505 0.000456857 -0.026173 0.0174466">
+                            <inertial pos="0 0 0.0017" mass="0.000169697" diaginertia="1.29009e-09 1.29009e-09 7.6801e-10"/>
+                            <geom class="hand_visual" material="hand_white" mesh="hand_right_ring_f_link"/>
+                            <geom name="hand_rf_f_spring1_g0" class="hand_visual" size="0.003 0.005" pos="0 0 0.0029" quat="0.707107 0 -0.707107 0" type="cylinder" rgba="0 1 0 1" material="hand_white"/>
+                            <site name="hand_rf_f_spring1_s1" size="0.0005" pos="0 0.005 0" group="4"/>
+                            <body name="hand_right_ring_proximal_link" pos="0 0 0.0034">
+                              <inertial pos="-4.27735e-08 -0.00357857 0.0205176" quat="0.706879 0.0179383 -0.0179383 0.706879" mass="0.00600337" diaginertia="8.89987e-07 8.65277e-07 2.05351e-07"/>
+                              <joint name="hand_right_ring_mcp_flex" class="hand_rot" axis="1 0 0"/>
+                              <geom class="hand_visual" material="hand_white" mesh="hand_right_ring_proximal_link"/>
+                              <geom size="0.006 0.006 0.013" pos="0 -0.003 0.019" type="box"/>
+                              <geom name="hand_rf_proximal_tendon0_g0" class="hand_visual" size="0.0025 0.005" pos="0 -0.0075 0.0095" quat="0.707107 0 -0.707107 0" type="cylinder" rgba="0 1 0 1" material="hand_white"/>
+                              <geom name="hand_rf_proximal_tendon2" class="hand_visual" size="0.0025 0.005" pos="0 -0.0057 0.0173" quat="0.707107 0 -0.707107 0" type="cylinder" rgba="0 1 0 1" material="hand_white"/>
+                              <geom name="hand_rf_proximal_tendon3" class="hand_visual" size="0.0025 0.005" pos="0 -0.0057 0.0323" quat="0.707107 0 -0.707107 0" type="cylinder" rgba="0 1 0 1" material="hand_white"/>
+                              <geom name="hand_rf_proximal_tendon1_g0" class="hand_visual" size="0.003 0.005" pos="0 -0.0018 0.043" quat="0.707107 0 -0.707107 0" type="cylinder" rgba="0 1 0 1" material="hand_white"/>
+                              <site name="hand_rf_proximal_tendon0_s0" size="0.0001" pos="0 -0.011 0.0095" group="4"/>
+                              <site name="hand_rf_proximal_tendon0_s1" size="0.0001" pos="0 -0.0063 0.0135" group="4"/>
+                              <site name="hand_rf_proximal_tendon0_s2" size="0.0001" pos="0 -0.0022 0.0173" group="4"/>
+                              <site name="hand_rf_proximal_tendon0_s3" size="0.0001" pos="0 -0.0025 0.0333" group="4"/>
+                              <site name="hand_rf_proximal_tendon0_s4" size="0.0001" pos="0 -0.0025 0.0333" group="4"/>
+                              <site name="hand_rf_proximal_tendon1_s0" size="0.0001" pos="0 -0.0048 0.04" group="4"/>
+                              <site name="hand_rf_proximal_tendon1_s1" size="0.0001" pos="0 0.0012 0.035" group="4"/>
+                              <site name="hand_rf_proximal_spring0_s0" size="0.0005" pos="0 0.0012 0.011" group="4"/>
+                              <site name="hand_rf_proximal_spring0_s1" size="0.0005" pos="0 0.0012 0.04" group="4"/>
+                              <site name="hand_rf_proximal_spring1_s0" size="0.0005" pos="0 0.003 0.004" group="4"/>
+                              <body name="hand_right_ring_middle_link" pos="0 -0.0014554 0.043" quat="0.999962 0.00872639 0 0">
+                                <inertial pos="5.2917e-09 -0.00110519 0.0093962" quat="0.706846 -0.0191893 0.019202 0.706846" mass="0.00237591" diaginertia="1.62521e-07 1.35575e-07 7.42877e-08"/>
+                                <joint name="hand_right_ring_pip" class="hand_pip" axis="1 0 0"/>
+                                <geom class="hand_visual" quat="1 0 0 0" material="hand_white" mesh="hand_right_ring_middle_link"/>
+                                <geom size="0.006 0.005 0.01" pos="0 -0.001 0.006" type="box"/>
+                                <site name="hand_rf_middle_spring0_s0" size="0.0005" pos="0 0.004 0.003" group="4"/>
+                                <body name="hand_right_ring_distal_link" pos="0 0.00036966 0.021997" quat="1 0.00052935 0 0">
+                                  <inertial pos="-0.00184407 0.000358289 0.0107282" quat="0.696244 -0.184422 0.050064 0.691901" mass="0.00309314" diaginertia="1.89076e-07 1.75558e-07 6.39409e-08"/>
+                                  <joint name="hand_right_ring_dip" class="hand_dip" axis="1 0 0"/>
+                                  <geom class="hand_visual" quat="1 0 0 0" material="hand_white" mesh="hand_right_ring_distal_link"/>
+                                  <geom class="hand_visual" pos="0 0.0033789 0.024944" quat="0.999999 -0.0015829 0 0" material="hand_white" mesh="hand_right_ring_tip_link"/>
+                                  <geom name="hand_rf_tip" size="0.005 0.005 0.01" pos="0 -0.003 0.014" type="box"/>
+                                  <geom name="hand_rf_dip_tendon0_g0" class="hand_visual" size="0.0025 0.005" pos="0 -0.006 0.002" quat="0.707107 0 -0.707107 0" type="cylinder" rgba="0 1 0 1" material="hand_white"/>
+                                  <geom name="hand_rf_dip_tendon1_g0" class="hand_visual" size="0.0025 0.005" quat="0.707107 0 -0.707107 0" type="cylinder" rgba="0 1 0 1" material="hand_white"/>
+                                  <site name="hand_rf_tip" pos="0 -0.003 0.023" group="4"/>
+                                  <site name="hand_rf_dip_tendon0_s0" size="0.0001" pos="0 -0.0086 0.003" group="4"/>
+                                  <site name="hand_rf_dip_tendon0_s2" size="0.0001" pos="0 -0.0015 0.0075" group="4"/>
+                                  <site name="hand_rf_dip_tendon1_s0" size="0.0001" pos="0 0.0025 0.015" group="4"/>
+                                  <site name="hand_rf_dip_tendon1_s1" size="0.0001" pos="0 0.0025 -0.002" group="4"/>
+                                </body>
+                              </body>
+                            </body>
+                          </body>
+                          <body name="hand_right_pinky_f_link" pos="-0.036912 -0.0066167 0.087021" quat="0.998019 0.00182998 -0.0523041 0.034918">
+                            <inertial pos="0 0 0.0017" mass="0.000169697" diaginertia="1.29009e-09 1.29009e-09 7.6801e-10"/>
+                            <geom class="hand_visual" material="hand_white" mesh="hand_right_pinky_f_link"/>
+                            <geom name="hand_pf_f_spring1_g0" class="hand_visual" size="0.003 0.005" pos="0 0 0.0029" quat="0.707107 0 -0.707107 0" type="cylinder" rgba="0 1 0 1" material="hand_white"/>
+                            <site name="hand_pf_f_spring1_s1" size="0.0001" pos="0 0.005 0" group="4"/>
+                            <body name="hand_right_pinky_proximal_link" pos="0 0 0.0034">
+                              <inertial pos="-4.24866e-08 -0.00357857 0.0205176" quat="0.706879 0.0179383 -0.0179383 0.706879" mass="0.00600337" diaginertia="8.89987e-07 8.65277e-07 2.05351e-07"/>
+                              <joint name="hand_right_pinky_mcp_flex" class="hand_rot" axis="1 0 0"/>
+                              <geom class="hand_visual" quat="1 0 0 0" material="hand_white" mesh="hand_right_pinky_proximal_link"/>
+                              <geom size="0.006 0.006 0.013" pos="0 -0.003 0.019" type="box"/>
+                              <geom name="hand_pf_proximal_tendon0_g0" class="hand_visual" size="0.0025 0.005" pos="0 -0.0075 0.0095" quat="0.707107 0 -0.707107 0" type="cylinder" rgba="0 1 0 1" material="hand_white"/>
+                              <geom name="hand_pf_proximal_tendon2" class="hand_visual" size="0.0025 0.005" pos="0 -0.0057 0.0173" quat="0.707107 0 -0.707107 0" type="cylinder" rgba="0 1 0 1" material="hand_white"/>
+                              <geom name="hand_pf_proximal_tendon3" class="hand_visual" size="0.0025 0.005" pos="0 -0.0057 0.0323" quat="0.707107 0 -0.707107 0" type="cylinder" rgba="0 1 0 1" material="hand_white"/>
+                              <geom name="hand_pf_proximal_tendon1_g0" class="hand_visual" size="0.003 0.005" pos="0 -0.0018 0.043" quat="0.707107 0 -0.707107 0" type="cylinder" rgba="0 1 0 1" material="hand_white"/>
+                              <site name="hand_pf_proximal_tendon0_s0" size="0.0001" pos="0 -0.011 0.0095" group="4"/>
+                              <site name="hand_pf_proximal_tendon0_s1" size="0.0001" pos="0 -0.0063 0.0135" group="4"/>
+                              <site name="hand_pf_proximal_tendon0_s2" size="0.0001" pos="0 -0.0022 0.0173" group="4"/>
+                              <site name="hand_pf_proximal_tendon0_s3" size="0.0001" pos="0 -0.0025 0.0333" group="4"/>
+                              <site name="hand_pf_proximal_tendon0_s4" size="0.0001" pos="0 -0.0025 0.0333" group="4"/>
+                              <site name="hand_pf_proximal_tendon1_s0" size="0.0001" pos="0 -0.0048 0.04" group="4"/>
+                              <site name="hand_pf_proximal_tendon1_s1" size="0.0001" pos="0 0.0012 0.035" group="4"/>
+                              <site name="hand_pf_proximal_spring0_s0" size="0.0005" pos="0 0.0012 0.011" group="4"/>
+                              <site name="hand_pf_proximal_spring0_s1" size="0.0005" pos="0 0.0012 0.04" group="4"/>
+                              <site name="hand_pf_proximal_spring1_s0" size="0.0005" pos="0 0.003 0.004" group="4"/>
+                              <body name="hand_right_pinky_middle_link" pos="0 -0.0014554 0.043" quat="0.999962 0.00872639 0 0">
+                                <inertial pos="1.1729e-08 -0.00110519 0.0093962" quat="0.706846 -0.0191898 0.019202 0.706846" mass="0.00237591" diaginertia="1.6252e-07 1.35575e-07 7.42876e-08"/>
+                                <joint name="hand_right_pinky_pip" class="hand_pip" axis="1 0 0"/>
+                                <geom class="hand_visual" quat="1 0 0 0" material="hand_white" mesh="hand_right_pinky_middle_link"/>
+                                <geom size="0.006 0.005 0.01" pos="0 -0.001 0.006" type="box"/>
+                                <site name="hand_pf_middle_spring0_s0" size="0.0005" pos="0 0.004 0.003" group="4"/>
+                                <body name="hand_right_pinky_distal_link" pos="0 0.00036966 0.021997" quat="1 0.00052935 0 0">
+                                  <inertial pos="-0.00184407 0.000358264 0.0107282" quat="0.696242 -0.184421 0.0500633 0.691903" mass="0.00309314" diaginertia="1.89076e-07 1.75557e-07 6.3941e-08"/>
+                                  <joint name="hand_right_pinky_dip" class="hand_dip" axis="1 0 0"/>
+                                  <geom class="hand_visual" quat="1 0 0 0" material="hand_white" mesh="hand_right_pinky_distal_link"/>
+                                  <geom class="hand_visual" pos="0 0.0033789 0.024944" quat="0.999999 -0.0015829 0 0" material="hand_white" mesh="hand_right_pinky_tip_link"/>
+                                  <geom name="hand_pf_tip" size="0.005 0.005 0.01" pos="0 -0.003 0.014" type="box"/>
+                                  <geom name="hand_pf_dip_tendon0_g0" class="hand_visual" size="0.0025 0.005" pos="0 -0.006 0.002" quat="0.707107 0 -0.707107 0" type="cylinder" rgba="0 1 0 1" material="hand_white"/>
+                                  <geom name="hand_pf_dip_tendon1_g0" class="hand_visual" size="0.0025 0.005" quat="0.707107 0 -0.707107 0" type="cylinder" rgba="0 1 0 1" material="hand_white"/>
+                                  <site name="hand_pf_tip" pos="0 -0.003 0.023" group="4"/>
+                                  <site name="hand_pf_dip_tendon0_s0" size="0.002" pos="0 -0.0086 0.003" group="4"/>
+                                  <site name="hand_pf_dip_tendon0_s2" size="0.0001" pos="0 -0.0015 0.0075" group="4"/>
+                                  <site name="hand_pf_dip_tendon1_s0" size="0.0001" pos="0 0.0025 0.015" group="4"/>
+                                  <site name="hand_pf_dip_tendon1_s1" size="0.0001" pos="0 0.0025 -0.002" group="4"/>
+                                </body>
+                              </body>
+                            </body>
+                          </body>
+                          <body name="hand_right_t_link" pos="0.026317 -0.0175 0.02956" quat="0.579233 -0.40557 0.405572 -0.579235">
+                            <inertial pos="-0.000792597 0.00920489 0.00837042" quat="0.968785 -0.231969 -0.0564922 0.066746" mass="0.00893482" diaginertia="1.11708e-06 8.42419e-07 4.36164e-07"/>
+                            <joint name="hand_right_thumb_cmc_abd" class="hand_thumb_cmc" axis="0 1 0"/>
+                            <geom class="hand_visual" material="hand_white" mesh="hand_right_t_link"/>
+                            <geom name="hand_th_mp_collision" size="0.015 0.008 0.008" pos="-0.01 0.015 0.005" type="box"/>
+                            <geom name="hand_th_t_tendon0_g0" class="hand_visual" size="0.0025 0.0012" pos="0 0.0018 0" quat="0.707107 -0.707107 0 0" type="cylinder" rgba="0 1 0 1" material="hand_white"/>
+                            <geom name="hand_th_t_tendon0_g1" class="hand_visual" size="0.0025 0.0012" pos="0.0037 0.0018 0.0055" quat="0.707107 -0.707107 0 0" type="cylinder" rgba="0 1 0 1" material="hand_white"/>
+                            <geom name="hand_th_t_tendon0_g2" class="hand_visual" size="0.0017 0.0015" pos="0.001 0.0004 0.0108" quat="0.707107 0 -0.707107 0" type="cylinder" rgba="0 1 0 1" material="hand_white"/>
+                            <geom name="hand_th_t_tendon1_g0" class="hand_visual" size="0.0025 0.0012" pos="0 0.0145 0" quat="0.707107 -0.707107 0 0" type="cylinder" rgba="0 1 0 1" material="hand_white"/>
+                            <geom name="hand_th_t_tendon1_g1" class="hand_visual" size="0.0025 0.0012" pos="0.0017 0.0145 0.0069" quat="0.707107 -0.707107 0 0" type="cylinder" rgba="0 1 0 1" material="hand_white"/>
+                            <geom name="hand_th_t_tendon1_g2" class="hand_visual" size="0.0025 0.0025" pos="0.0017 0.0135 0.0203" quat="0.707107 0 -0.707107 0" type="cylinder" rgba="0 1 0 1" material="hand_white"/>
+                            <site name="hand_th_t_tendon0_s0" size="0.0001" pos="0 0.0018 -0.003" group="4"/>
+                            <site name="hand_th_t_tendon0_s1" size="0.0001" pos="0.00185 0.0018 0.00275" group="4"/>
+                            <site name="hand_th_t_tendon0_s2" size="0.0001" pos="0.00185 0.0018 0.0083" group="4"/>
+                            <site name="hand_th_t_tendon0_s3" size="0.0001" pos="0.00185 0.0018 0.0125" group="4"/>
+                            <site name="hand_th_t_tendon1_s0" size="0.0001" pos="0 0.0145 -0.003" group="4"/>
+                            <site name="hand_th_t_tendon1_s1" size="0.0001" pos="0.00085 0.0145 0.00345" group="4"/>
+                            <site name="hand_th_t_tendon1_s2" size="0.0001" pos="0.00035 0.0145 0.011" group="4"/>
+                            <site name="hand_th_t_tendon1_s3" size="0.001" pos="0.0017 0.0165 0.0203" group="4"/>
+                            <site name="hand_th_t_spring0_s0" size="0.001" pos="-0.0038 0.021 0.0125" group="4"/>
+                            <body name="hand_right_thumb_mcp_link" pos="-0.0024625 0.011988 0.019805" quat="0.988119 0.0527639 -0.058289 0.132056">
+                              <inertial pos="-3.98621e-09 -0.0014303 0.0147562" quat="0.706814 0.0205256 -0.020536 0.706804" mass="0.0102694" diaginertia="1.58158e-06 1.39018e-06 6.7267e-07"/>
+                              <joint name="hand_right_thumb_cmc_flex" class="hand_thumb_axl" range="0 0.9559" axis="1 0 0"/>
+                              <geom class="hand_visual" quat="1 0 0 0" material="hand_white" mesh="hand_right_thumb_mcp_link"/>
+                              <geom name="hand_th_bs_collision_1" size="0.008 0.01 0.016" pos="0 0 0.014" type="box"/>
+                              <geom name="hand_th_mcp_tendon1_g0" class="hand_visual" size="0.0025 0.0025" pos="0 -0.005 0.024" quat="0.707107 0 -0.707107 0" type="cylinder" rgba="0 1 0 1" material="hand_white"/>
+                              <site name="hand_th_mcp_tendon0_s0" size="0.0001" pos="0 -0.012 0.015" group="4"/>
+                              <site name="hand_th_mcp_tendon1_s0" size="0.002" pos="0 -0.002 0.028" group="4"/>
+                              <site name="hand_th_mcp_spring0_s0" size="0.001" pos="0 0.011 0.0045" group="4"/>
+                              <site name="hand_th_mcp_spring1_s0" size="0.001" pos="0 0.004 0.009" group="4"/>
+                              <body name="hand_right_thumb_proximal_link" pos="0 0.0013652 0.035982">
+                                <inertial pos="-9.60413e-08 -0.00147723 0.0133935" quat="0.707028 -0.010773 0.0107885 0.707021" mass="0.00574573" diaginertia="6.77924e-07 5.00351e-07 3.51862e-07"/>
+                                <joint name="hand_right_thumb_mcp" class="hand_thumb_mcp" range="0 1.5708" axis="1 0 0"/>
+                                <geom class="hand_visual" quat="1 0 0 0" material="hand_white" mesh="hand_right_thumb_proximal_link"/>
+                                <geom name="hand_th_px_collision_1" size="0.008 0.006 0.012" pos="0 -0.002 0.012" type="box"/>
+                                <geom name="hand_th_proximal_spring1_g0" class="hand_visual" size="0.0045 0.005" quat="0.707107 0 -0.707107 0" type="cylinder" rgba="0 1 0 1" material="hand_white"/>
+                                <site name="hand_th_proximal_spring1_s0" size="0.0005" pos="0 0.005 -0.0015" group="4"/>
+                                <site name="hand_th_proximal_spring1_s1" size="0.0005" pos="0 0.005 0.006" group="4"/>
+                                <body name="hand_right_thumb_distal_link" pos="0 0.00052357 0.029995">
+                                  <inertial pos="-0.00113926 -0.00130909 0.0133464" quat="0.698666 -0.140008 0.0513212 0.699736" mass="0.00692863" diaginertia="6.65186e-07 5.66522e-07 2.78338e-07"/>
+                                  <joint name="hand_right_thumb_ip" class="hand_thumb_ipl" range="0 1.5708" axis="1 0 0"/>
+                                  <geom class="hand_visual" quat="1 0 0 0" material="hand_white" mesh="hand_right_thumb_distal_link"/>
+                                  <geom class="hand_visual" pos="0 0.0024685 0.029987" quat="0.999982 0.00592597 0 0" material="hand_white" mesh="hand_right_thumb_tip_link"/>
+                                  <geom name="hand_th_tip" size="0.008 0.006 0.012" pos="0 -0.002 0.015" type="box"/>
+                                  <geom name="hand_th_tendon1_ip_g0" class="hand_visual" size="0.0025 0.005" pos="0 -0.008 0.002" quat="0.707107 0 -0.707107 0" type="cylinder" rgba="0 1 0 1" material="hand_white"/>
+                                  <site name="hand_th_tip" pos="0 -0.005 0.027" group="4"/>
+                                  <site name="hand_th_tendon1_ip_s0" size="0.001" pos="0 -0.0106 0.002" group="4"/>
+                                  <site name="hand_th_tendon1_ip_s1" size="0.0001" pos="0 -0.0003 0.0115" group="4"/>
+                                </body>
+                              </body>
+                            </body>
+                          </body>
+                        </body>
+                      </body>
+                    </frame>
+                  </body>
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+
+  <contact>
+    <exclude body1="base" body2="link1"/>
+    <exclude body1="base" body2="link2"/>
+    <exclude body1="base" body2="link3"/>
+    <exclude body1="link1" body2="link3"/>
+    <exclude body1="link3" body2="link5"/>
+    <exclude body1="link4" body2="link7"/>
+    <exclude body1="link5" body2="link7"/>
+    <exclude body1="hand_palm" body2="hand_right_t_link"/>
+    <exclude body1="hand_palm" body2="hand_right_index_f_link"/>
+    <exclude body1="hand_palm" body2="hand_right_middle_f_link"/>
+    <exclude body1="hand_palm" body2="hand_right_ring_f_link"/>
+    <exclude body1="hand_palm" body2="hand_right_pinky_f_link"/>
+    <exclude body1="hand_palm" body2="hand_right_thumb_mcp_link"/>
+    <exclude body1="hand_palm" body2="hand_right_index_proximal_link"/>
+    <exclude body1="hand_palm" body2="hand_right_middle_proximal_link"/>
+    <exclude body1="hand_palm" body2="hand_right_ring_proximal_link"/>
+    <exclude body1="hand_palm" body2="hand_right_pinky_proximal_link"/>
+    <exclude body1="hand_palm" body2="hand_right_thumb_proximal_link"/>
+    <exclude body1="hand_palm" body2="hand_right_index_middle_link"/>
+    <exclude body1="hand_palm" body2="hand_right_middle_middle_link"/>
+    <exclude body1="hand_palm" body2="hand_right_ring_middle_link"/>
+    <exclude body1="hand_palm" body2="hand_right_pinky_middle_link"/>
+    <exclude body1="hand_tetheria_mount" body2="hand_palm"/>
+    <exclude body1="hand_tetheria_mount" body2="hand_right_t_link"/>
+    <exclude body1="hand_tetheria_mount" body2="hand_right_index_f_link"/>
+    <exclude body1="hand_tetheria_mount" body2="hand_right_middle_f_link"/>
+    <exclude body1="hand_tetheria_mount" body2="hand_right_ring_f_link"/>
+    <exclude body1="hand_tetheria_mount" body2="hand_right_pinky_f_link"/>
+    <exclude body1="hand_tetheria_mount" body2="hand_right_thumb_mcp_link"/>
+    <exclude body1="hand_tetheria_mount" body2="hand_right_index_proximal_link"/>
+    <exclude body1="hand_tetheria_mount" body2="hand_right_middle_proximal_link"/>
+    <exclude body1="hand_tetheria_mount" body2="hand_right_ring_proximal_link"/>
+    <exclude body1="hand_tetheria_mount" body2="hand_right_pinky_proximal_link"/>
+    <exclude body1="hand_tetheria_mount" body2="hand_right_thumb_proximal_link"/>
+    <exclude body1="hand_tetheria_mount" body2="hand_right_index_middle_link"/>
+    <exclude body1="hand_tetheria_mount" body2="hand_right_middle_middle_link"/>
+    <exclude body1="hand_tetheria_mount" body2="hand_right_ring_middle_link"/>
+    <exclude body1="hand_tetheria_mount" body2="hand_right_pinky_middle_link"/>
+    <exclude body1="hand_tetheria_mount" body2="hand_right_thumb_distal_link"/>
+    <exclude body1="hand_tetheria_mount" body2="hand_right_index_distal_link"/>
+    <exclude body1="hand_tetheria_mount" body2="hand_right_middle_distal_link"/>
+    <exclude body1="hand_tetheria_mount" body2="hand_right_ring_distal_link"/>
+    <exclude body1="hand_tetheria_mount" body2="hand_right_pinky_distal_link"/>
+    <exclude body1="hand_right_index_f_link" body2="hand_right_t_link"/>
+    <exclude body1="hand_right_middle_f_link" body2="hand_right_t_link"/>
+    <exclude body1="hand_right_ring_f_link" body2="hand_right_t_link"/>
+    <exclude body1="hand_right_pinky_f_link" body2="hand_right_t_link"/>
+    <exclude body1="hand_right_index_f_link" body2="hand_right_middle_f_link"/>
+    <exclude body1="hand_right_index_f_link" body2="hand_right_ring_f_link"/>
+    <exclude body1="hand_right_index_f_link" body2="hand_right_pinky_f_link"/>
+    <exclude body1="hand_right_middle_f_link" body2="hand_right_ring_f_link"/>
+    <exclude body1="hand_right_middle_f_link" body2="hand_right_pinky_f_link"/>
+    <exclude body1="hand_right_ring_f_link" body2="hand_right_pinky_f_link"/>
+    <exclude body1="link7" body2="hand_tetheria_mount"/>
+    <exclude body1="link6" body2="hand_tetheria_mount"/>
+    <exclude body1="link7" body2="hand_palm"/>
+    <exclude body1="link6" body2="hand_palm"/>
+  </contact>
+
+  <tendon>
+    <spatial name="hand_if_tendon0" class="hand_mcp_tendon" springlength="0.107446">
+      <site site="hand_palm_collision_1"/>
+      <geom geom="hand_if_proximal_tendon0_g0" sidesite="hand_if_proximal_tendon0_s0"/>
+      <site site="hand_if_proximal_tendon0_s1"/>
+      <geom geom="hand_if_proximal_tendon2" sidesite="hand_if_proximal_tendon0_s2"/>
+      <site site="hand_if_proximal_tendon0_s3"/>
+      <geom geom="hand_if_proximal_tendon3" sidesite="hand_if_proximal_tendon0_s4"/>
+      <site site="hand_if_proximal_tendon0_s4"/>
+      <geom geom="hand_if_dip_tendon0_g0" sidesite="hand_if_dip_tendon0_s0"/>
+      <site site="hand_if_dip_tendon0_s2"/>
+    </spatial>
+    <spatial name="hand_if_tendon1" class="hand_flex_tendon" springlength="0.0480521">
+      <site site="hand_if_dip_tendon1_s0"/>
+      <geom geom="hand_if_dip_tendon1_g0" sidesite="hand_if_dip_tendon1_s1"/>
+      <site site="hand_if_dip_tendon1_s1"/>
+      <geom geom="hand_if_proximal_tendon1_g0" sidesite="hand_if_proximal_tendon1_s0"/>
+      <site site="hand_if_proximal_tendon1_s1"/>
+    </spatial>
+    <spatial name="hand_if_spring0" class="hand_distal_spring">
+      <site site="hand_if_proximal_spring0_s0"/>
+      <site site="hand_if_proximal_spring0_s1"/>
+      <geom geom="hand_if_proximal_tendon1_g0"/>
+      <site site="hand_if_middle_spring0_s0"/>
+    </spatial>
+    <spatial name="hand_if_spring1" class="hand_mcp_spring">
+      <site site="hand_if_f_spring1_s1"/>
+      <geom geom="hand_if_f_spring1_g0"/>
+      <site site="hand_if_proximal_spring1_s0"/>
+    </spatial>
+    <spatial name="hand_mf_tendon0" class="hand_mcp_tendon" springlength="0.108143">
+      <site site="hand_palm_collision_2"/>
+      <geom geom="hand_mf_proximal_tendon0_g0" sidesite="hand_mf_proximal_tendon0_s0"/>
+      <site site="hand_mf_proximal_tendon0_s1"/>
+      <geom geom="hand_mf_proximal_tendon2" sidesite="hand_mf_proximal_tendon0_s2"/>
+      <site site="hand_mf_proximal_tendon0_s3"/>
+      <geom geom="hand_mf_proximal_tendon3" sidesite="hand_mf_proximal_tendon0_s4"/>
+      <site site="hand_mf_proximal_tendon0_s4"/>
+      <geom geom="hand_mf_dip_tendon0_g0" sidesite="hand_mf_dip_tendon0_s0"/>
+      <site site="hand_mf_dip_tendon0_s2"/>
+    </spatial>
+    <spatial name="hand_mf_tendon1" class="hand_flex_tendon" springlength="0.0480521">
+      <site site="hand_mf_dip_tendon1_s0"/>
+      <geom geom="hand_mf_dip_tendon1_g0" sidesite="hand_mf_dip_tendon1_s1"/>
+      <site site="hand_mf_dip_tendon1_s1"/>
+      <geom geom="hand_mf_proximal_tendon1_g0" sidesite="hand_mf_proximal_tendon1_s0"/>
+      <site site="hand_mf_proximal_tendon1_s1"/>
+    </spatial>
+    <spatial name="hand_mf_spring0" class="hand_distal_spring">
+      <site site="hand_mf_proximal_spring0_s0"/>
+      <site site="hand_mf_proximal_spring0_s1"/>
+      <geom geom="hand_mf_proximal_tendon1_g0"/>
+      <site site="hand_mf_middle_spring0_s0"/>
+    </spatial>
+    <spatial name="hand_mf_spring1" class="hand_mcp_spring">
+      <site site="hand_mf_f_spring1_s1"/>
+      <geom geom="hand_mf_f_spring1_g0"/>
+      <site site="hand_mf_proximal_spring1_s0"/>
+    </spatial>
+    <spatial name="hand_rf_tendon0" class="hand_mcp_tendon" springlength="0.107442">
+      <site site="hand_palm_collision_3"/>
+      <geom geom="hand_rf_proximal_tendon0_g0" sidesite="hand_rf_proximal_tendon0_s0"/>
+      <site site="hand_rf_proximal_tendon0_s1"/>
+      <geom geom="hand_rf_proximal_tendon2" sidesite="hand_rf_proximal_tendon0_s2"/>
+      <site site="hand_rf_proximal_tendon0_s3"/>
+      <geom geom="hand_rf_proximal_tendon3" sidesite="hand_rf_proximal_tendon0_s4"/>
+      <site site="hand_rf_proximal_tendon0_s4"/>
+      <geom geom="hand_rf_dip_tendon0_g0" sidesite="hand_rf_dip_tendon0_s0"/>
+      <site site="hand_rf_dip_tendon0_s2"/>
+    </spatial>
+    <spatial name="hand_rf_tendon1" class="hand_flex_tendon" springlength="0.0480521">
+      <site site="hand_rf_dip_tendon1_s0"/>
+      <geom geom="hand_rf_dip_tendon1_g0" sidesite="hand_rf_dip_tendon1_s1"/>
+      <site site="hand_rf_dip_tendon1_s1"/>
+      <geom geom="hand_rf_proximal_tendon1_g0" sidesite="hand_rf_proximal_tendon1_s0"/>
+      <site site="hand_rf_proximal_tendon1_s1"/>
+    </spatial>
+    <spatial name="hand_rf_spring0" class="hand_distal_spring">
+      <site site="hand_rf_proximal_spring0_s0"/>
+      <site site="hand_rf_proximal_spring0_s1"/>
+      <geom geom="hand_rf_proximal_tendon1_g0"/>
+      <site site="hand_rf_middle_spring0_s0"/>
+    </spatial>
+    <spatial name="hand_rf_spring1" class="hand_mcp_spring">
+      <site site="hand_rf_f_spring1_s1"/>
+      <geom geom="hand_rf_f_spring1_g0"/>
+      <site site="hand_rf_proximal_spring1_s0"/>
+    </spatial>
+    <spatial name="hand_pf_tendon0" class="hand_mcp_tendon" springlength="0.10929">
+      <site site="hand_palm_collision_4"/>
+      <geom geom="hand_pf_proximal_tendon0_g0" sidesite="hand_pf_proximal_tendon0_s0"/>
+      <site site="hand_pf_proximal_tendon0_s1"/>
+      <geom geom="hand_pf_proximal_tendon2" sidesite="hand_pf_proximal_tendon0_s2"/>
+      <site site="hand_pf_proximal_tendon0_s3"/>
+      <geom geom="hand_pf_proximal_tendon3" sidesite="hand_pf_proximal_tendon0_s4"/>
+      <site site="hand_pf_proximal_tendon0_s4"/>
+      <geom geom="hand_pf_dip_tendon0_g0" sidesite="hand_pf_dip_tendon0_s0"/>
+      <site site="hand_pf_dip_tendon0_s2"/>
+    </spatial>
+    <spatial name="hand_pf_tendon1" class="hand_flex_tendon" springlength="0.0480521">
+      <site site="hand_pf_dip_tendon1_s0"/>
+      <geom geom="hand_pf_dip_tendon1_g0" sidesite="hand_pf_dip_tendon1_s1"/>
+      <site site="hand_pf_dip_tendon1_s1"/>
+      <geom geom="hand_pf_proximal_tendon1_g0" sidesite="hand_pf_proximal_tendon1_s0"/>
+      <site site="hand_pf_proximal_tendon1_s1"/>
+    </spatial>
+    <spatial name="hand_pf_spring0" class="hand_distal_spring">
+      <site site="hand_pf_proximal_spring0_s0"/>
+      <site site="hand_pf_proximal_spring0_s1"/>
+      <geom geom="hand_pf_proximal_tendon1_g0"/>
+      <site site="hand_pf_middle_spring0_s0"/>
+    </spatial>
+    <spatial name="hand_pf_spring1" class="hand_mcp_spring">
+      <site site="hand_pf_f_spring1_s1"/>
+      <geom geom="hand_pf_f_spring1_g0"/>
+      <site site="hand_pf_proximal_spring1_s0"/>
+    </spatial>
+    <spatial name="hand_th_tendon1" class="hand_mcp_tendon" springlength="0.0383564">
+      <site site="hand_th_t_tendon0_s0"/>
+      <geom geom="hand_th_t_tendon0_g0"/>
+      <site site="hand_th_t_tendon0_s1"/>
+      <geom geom="hand_th_t_tendon0_g1"/>
+      <site site="hand_th_t_tendon0_s2"/>
+      <geom geom="hand_th_t_tendon0_g2"/>
+      <site site="hand_th_t_tendon0_s3"/>
+      <site site="hand_th_mcp_tendon0_s0"/>
+    </spatial>
+    <spatial name="hand_th_tendon2" class="hand_flex_tendon" springlength="0.109869">
+      <site site="hand_th_t_tendon1_s0"/>
+      <geom geom="hand_th_t_tendon1_g0"/>
+      <site site="hand_th_t_tendon1_s1"/>
+      <geom geom="hand_th_t_tendon1_g1"/>
+      <site site="hand_th_t_tendon1_s2"/>
+      <geom geom="hand_th_t_tendon1_g2"/>
+      <site site="hand_th_t_tendon1_s3"/>
+      <geom geom="hand_th_t_tendon1_g2" sidesite="hand_th_t_tendon1_s3"/>
+      <site site="hand_th_mcp_tendon1_s0"/>
+      <geom geom="hand_th_tendon1_ip_g0" sidesite="hand_th_tendon1_ip_s0"/>
+      <site site="hand_th_tendon1_ip_s1"/>
+    </spatial>
+    <spatial name="hand_th_spring0" class="hand_cmc_spring">
+      <site site="hand_th_t_spring0_s0"/>
+      <site site="hand_th_mcp_spring0_s0"/>
+    </spatial>
+    <spatial name="hand_th_spring1" class="hand_distal_spring">
+      <site site="hand_th_mcp_spring1_s0"/>
+      <geom geom="hand_th_proximal_spring1_g0"/>
+      <site site="hand_th_proximal_spring1_s0"/>
+      <geom geom="hand_th_proximal_spring1_g0"/>
+      <site site="hand_th_proximal_spring1_s1"/>
+    </spatial>
+  </tendon>
+
+  <equality>
+    <joint joint1="hand_right_index_pip" joint2="hand_right_index_dip"/>
+    <joint joint1="hand_right_middle_pip" joint2="hand_right_middle_dip"/>
+    <joint joint1="hand_right_ring_pip" joint2="hand_right_ring_dip"/>
+    <joint joint1="hand_right_pinky_pip" joint2="hand_right_pinky_dip"/>
+    <joint joint1="hand_right_thumb_mcp" joint2="hand_right_thumb_ip"/>
+  </equality>
+
+  <actuator>
+    <general name="actuator1" class="joint1" joint="joint1"/>
+    <general name="actuator2" class="joint2" joint="joint2"/>
+    <general name="actuator3" class="joint1" joint="joint3"/>
+    <general name="actuator4" class="joint2" joint="joint4"/>
+    <general name="actuator5" class="joint1" joint="joint5"/>
+    <general name="actuator6" class="joint2" joint="joint6"/>
+    <general name="actuator7" class="joint3" joint="joint7"/>
+    <general name="hand_right_index_A_tendon" tendon="hand_if_tendon0" ctrlrange="0.05852 0.110387" input="pos" biastype="affine" gainprm="10000" biasprm="0 -10000"/>
+    <general name="hand_right_middle_A_tendon" tendon="hand_mf_tendon0" ctrlrange="0.05852 0.110387" input="pos" biastype="affine" gainprm="10000" biasprm="0 -10000"/>
+    <general name="hand_right_ring_A_tendon" tendon="hand_rf_tendon0" ctrlrange="0.05852 0.110387" input="pos" biastype="affine" gainprm="10000" biasprm="0 -10000"/>
+    <general name="hand_right_pinky_A_tendon" tendon="hand_pf_tendon0" ctrlrange="0.05852 0.110387" input="pos" biastype="affine" gainprm="10000" biasprm="0 -10000"/>
+    <general name="hand_right_thumb_A_cmc_abd" class="hand_thumb_cmc" joint="hand_right_thumb_cmc_abd"/>
+    <general name="hand_right_th1_A_tendon" tendon="hand_th_tendon1" ctrlrange="0.026152 0.038389" input="pos" biastype="affine" gainprm="10000" biasprm="0 -10000"/>
+    <general name="hand_right_th2_A_tendon" tendon="hand_th_tendon2" ctrlrange="0.081568 0.112138" input="pos" biastype="affine" gainprm="10000" biasprm="0 -10000"/>
+  </actuator>
+
+  <sensor>
+
+    <tendonpos tendon="hand_if_tendon0" name="hand_len_if"/>
+
+    <tendonpos tendon="hand_mf_tendon0" name="hand_len_mf"/>
+
+    <tendonpos tendon="hand_rf_tendon0" name="hand_len_rf"/>
+
+    <tendonpos tendon="hand_pf_tendon0" name="hand_len_pf"/>
+
+    <tendonpos tendon="hand_th_tendon1" name="hand_len_th1"/>
+
+    <tendonpos tendon="hand_th_tendon2" name="hand_len_th2"/>
+    <jointpos joint="hand_right_thumb_cmc_abd" name="hand_len_th_abd"/>
+  </sensor>
+
+  <custom>
+    <numeric name="hand_max_contact_points" size="1" data="30"/>
+    <numeric name="hand_max_geom_pairs" size="1" data="12"/>
+  </custom>
+
+  <keyframe>
+    <key name="home" qpos="0 0.65 0 -1.3 0 1.2 0 1.57335 0.347305 0.352258 1.57303 0.400789 0.406 1.57335 0.365219 0.370336 1.57336 0.515229 0.520112 0.746438 0.260182 -0.00155382 1.0748" ctrl="0 0.65 0 -1.3 0 1.2 0 0.09 0.09 0.09 0.09 0.75 0.035 0.1"/>
+  </keyframe>
+</mujoco>
