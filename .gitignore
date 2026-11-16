@@ -3,6 +3,6 @@
 __pycache__/
 MUJOCO_LOG.TXT
 
-# Upstream model repos (cloned separately, see kuka_aero/README.md)
+# Upstream model repos (cloned into this folder, see README.md)
 aero-hand-open/
 mujoco_menagerie/

@@ -1,8 +1,8 @@
 """Build a MuJoCo scene with the TetherIA Aero Hand Open (right) mounted on a KUKA LBR iiwa 14.
 
-Sources (unmodified):
-  - KUKA iiwa 14:  ../mujoco_menagerie/kuka_iiwa_14/iiwa14.xml
-  - Aero Hand:     ../aero-hand-open/sim_rl/simulation/mujoco/right_hand.xml
+Sources (unmodified, cloned into this folder; see README.md):
+  - KUKA iiwa 14:  mujoco_menagerie/kuka_iiwa_14/iiwa14.xml
+  - Aero Hand:     aero-hand-open/sim_rl/simulation/mujoco/right_hand.xml
 
 Writes scene.xml next to this script. Re-run after updating either source model.
 """
@@ -14,7 +14,7 @@ import mujoco
 import numpy as np
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-ROOT = os.path.dirname(HERE)
+ROOT = HERE
 IIWA_XML = os.path.join(ROOT, "mujoco_menagerie", "kuka_iiwa_14", "iiwa14.xml")
 HAND_XML = os.path.join(ROOT, "aero-hand-open", "sim_rl", "simulation", "mujoco", "right_hand.xml")
 OUT_XML = os.path.join(HERE, "scene.xml")

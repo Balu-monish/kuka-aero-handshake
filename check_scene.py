@@ -78,6 +78,7 @@ def write_png(path, rgb):
                 + chunk(b"IDAT", zlib.compress(raw, 6)) + chunk(b"IEND", b""))
 
 
-out = os.path.join(HERE, "snapshot.png")
+os.makedirs(os.path.join(HERE, "media"), exist_ok=True)
+out = os.path.join(HERE, "media", "snapshot.png")
 write_png(out, np.ascontiguousarray(np.hstack([img, close])))
 print("saved", out)

@@ -29,6 +29,7 @@ from tactile import TactileSensors, add_tactile, heat_rgb_u8
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SCENE_XML = os.path.join(HERE, "scene.xml")
+MEDIA = os.path.join(HERE, "media")      # check outputs, images and videos
 
 # Arm posture for the handshake (IK reference): elbow up and out to the robot's right,
 # wrist well away from the iiwa's wrist singularity (joint 6 near 0). The earlier posture
@@ -881,7 +882,8 @@ def run_check(seed=1, max_time=150.0):
     opt = mujoco.MjvOption()
     opt.geomgroup[3] = 0
     pads = list(ses.skin.pads)
-    log = open(os.path.join(HERE, "tactile_log.csv"), "w", encoding="utf-8")
+    os.makedirs(MEDIA, exist_ok=True)
+    log = open(os.path.join(MEDIA, "tactile_log.csv"), "w", encoding="utf-8")
     log.write("time,phase,palm_total_N,palm_active,palm_max_N,"
               + ",".join(f"{p}_normal_N,{p}_shear1_N,{p}_shear2_N,{p}_slip" for p in pads) + "\n")
     commits = []          # (time, estimate, true partner position)
@@ -986,16 +988,16 @@ def run_check(seed=1, max_time=150.0):
               f"{np.median(t['active']):3.0f} / {np.max(t['active']):3d}      "
               + (", ".join(f"{p} {v:.1f}" for p, v in loaded.items()) or "-")
               + (f"   [slip samples: {slips}]" if slips else ""))
-    print("saved", os.path.join(HERE, "tactile_log.csv"))
+    print("saved", os.path.join(MEDIA, "tactile_log.csv"))
     if len(snaps) == 5:
         grid = np.vstack([np.hstack([snaps[k] for k in ("approach", "grip", "shake")]),
                           np.hstack([snaps[k] for k in ("partner_release", "return")]
                                     + [np.zeros_like(snaps["grip"])])])
-        out = os.path.join(HERE, "handshake_frames.png")
+        out = os.path.join(MEDIA, "handshake_frames.png")
         write_png(out, np.ascontiguousarray(grid))
         print("saved", out)
     if head_snap is not None:
-        out = os.path.join(HERE, "headcam_detect.png")
+        out = os.path.join(MEDIA, "headcam_detect.png")
         write_png(out, np.ascontiguousarray(head_snap))
         print("saved", out, "(head camera at the first commit)")
     ses.close()
@@ -1025,8 +1027,8 @@ def run_record(path, cycles=1, fps=30, width=1280, height=720, tactile=False, he
     cam = mujoco.MjvCamera()
     mujoco.mjv_defaultFreeCamera(m, cam)
     if tactile:   # closer on the hands so the tinted taxels/pads are visible
-        cam.lookat[:] = [0.56, 0.0, 0.52]
-        cam.distance, cam.azimuth, cam.elevation = 0.62, 140, -18
+        cam.lookat[:] = SHAKE_PALM_WORLD + np.array([-0.05, -0.02, -0.02])
+        cam.distance, cam.azimuth, cam.elevation = 0.48, 100, -25
     elif headcam:   # side view showing both the robot and the person
         cam.lookat[:] = [0.6, -0.05, 0.6]
         cam.distance, cam.azimuth, cam.elevation = 1.9, 65, -15
@@ -1073,8 +1075,8 @@ def run_record(path, cycles=1, fps=30, width=1280, height=720, tactile=False, he
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--check", action="store_true", help="headless run with metrics + frames")
-    ap.add_argument("--record", nargs="?", const=os.path.join(HERE, "handshake.mp4"), metavar="FILE.mp4",
-                    help="render an MP4 instead of opening the viewer (default: handshake.mp4)")
+    ap.add_argument("--record", nargs="?", const=os.path.join(MEDIA, "handshake.mp4"), metavar="FILE.mp4",
+                    help="render an MP4 instead of opening the viewer (default: media/handshake.mp4)")
     ap.add_argument("--cycles", type=int, default=1, help="handshakes to record")
     ap.add_argument("--seed", type=int, default=None,
                     help="random seed for the person's behaviour (viewer: random by default)")
