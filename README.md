@@ -176,3 +176,8 @@ media/            images, videos and check outputs
 Robot models: [TetherIA Aero Hand Open](https://github.com/TetherIA/aero-hand-open) and the
 KUKA LBR iiwa 14 from [MuJoCo Menagerie](https://github.com/google-deepmind/mujoco_menagerie),
 used unmodified under their own licenses. Simulation: [MuJoCo](https://mujoco.org).
+
+## License
+
+This project's code is released under the [MIT License](LICENSE). The robot models it builds
+on are not included in this repository and keep their own licenses.
