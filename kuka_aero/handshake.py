@@ -13,7 +13,7 @@ import os
 import mujoco
 import numpy as np
 
-from partner_hand import add_partner_hand
+from partner_hand import PRESS_TARGET, add_partner_hand
 from partner_hand import grip_targets as partner_grip_targets
 from tactile import TactileSensors, add_tactile, heat_rgb_u8
 
@@ -22,6 +22,7 @@ SCENE_XML = os.path.join(HERE, "scene.xml")
 
 ARM_HOME = np.array([0.0, 0.65, 0.0, -1.3, 0.0, 1.2, 0.0])
 MOUNT = "hand_tetheria_mount"
+PRESS_ACT = "act_partner_press"
 
 # Handshake pose of the hand bracket, in world coordinates.
 # Bracket axes: +x = finger direction, -y = thumb side, +z = palm normal.
@@ -37,28 +38,36 @@ SHAKE_PALM_WORLD = np.array([0.62, 0.0, 0.55])       # where the palms meet
 SHAKE_MOUNT_POS = SHAKE_PALM_WORLD - SHAKE_ROT @ PALM_CENTER_LOCAL
 
 # Partner hand geometry lives in partner_hand.py (its frame = robot bracket frame at the
-# shake pose). It slides in from this far along +x world.
+# shake pose). It comes in from this far along PARTNER_APPROACH_DIR.
 PARTNER_APPROACH = 0.25                              # m
 # Approach direction in the bracket frame (+x along the robot fingers, +z off the palm):
-# coming partly from the palm side lets the partner settle low into the robot's fingers
-# without sweeping through them.
-PARTNER_APPROACH_DIR = np.array([1.0, 0.0, 0.0])
+# coming mostly from the palm side (the person brings their palm in from beside the robot
+# hand) lets it settle onto the palm without sweeping through the open fingers.
+PARTNER_APPROACH_DIR = np.array([0.146, 0.0, 0.989])   # mostly from the palm side (~82 deg)
 
 # Hand actuators (tendon lengths): high = open, low = closed.
 # Order: index, middle, ring, pinky, thumb abduction, thumb flex 1, thumb flex 2.
 HAND_OPEN = np.array([0.11, 0.11, 0.11, 0.11, -0.1, 0.038, 0.112])     # thumb out of the way
-HAND_GRIP = np.array([0.059, 0.059, 0.059, 0.059, 0.5, 0.032, 0.095])  # wrap; contact stops it
+# Fingers: full close, contact stops them. Thumb: abducted to 1.4 rad so it rises off the
+# palm and rests on the back of the partner's hand (at 0.5 it stayed at palm height and
+# jammed into the partner's thumb). Robust for abduction 1.3-1.5.
+HAND_GRIP = np.array([0.059, 0.059, 0.059, 0.059, 1.4, 0.028, 0.085])
 HAND_FORCE_LIMIT = 20.0   # N per tendon actuator (assumed servo limit; source model has none)
 
-SHAKE_AMPLITUDE = 0.035   # m, vertical
-SHAKE_FREQ = 1.6          # Hz
+SHAKE_AMPLITUDE = 0.022   # m, vertical: a gentle pump (was 35 mm)
+SHAKE_FREQ = 1.25         # Hz (was 1.6): peak acceleration ~1.4 m/s^2 instead of ~3.5
 SHAKE_CYCLES = 3
 
-# Timeline (s).
-PHASES = [("reach", 2.5), ("partner_in", 1.5), ("grip", 1.6),
+# Timeline (s). The person closes their hand fully first (partner_grip), then the robot
+# wraps (grip), then they shake. Letting go mirrors it: the robot opens first (release),
+# then the person (partner_release).
+PHASES = [("reach", 2.5), ("partner_in", 1.5), ("partner_grip", 1.2), ("grip", 1.6),
           ("shake", SHAKE_CYCLES / SHAKE_FREQ), ("hold", 0.5), ("release", 0.8),
+          ("partner_release", 0.8),
           ("partner_out", 1.2), ("return", 2.5), ("pause", 1.0)]
 CYCLE = sum(t for _, t in PHASES)
+GRIPPED = ("grip", "shake", "hold", "release")             # partner hand fully closed
+HOLDING = ("partner_grip",) + GRIPPED + ("partner_release",)   # partner welded to the robot
 
 
 def build_model() -> mujoco.MjModel:
@@ -74,24 +83,22 @@ def build_model() -> mujoco.MjModel:
     #   partner_to_robot:  to the robot bracket -> while gripped, the person's relaxed arm
     #                      simply goes along with the shake (no fighting through contacts)
     spec.worldbody.add_body(name="partner_target", mocap=True)
-    partner = spec.worldbody.add_body(name="partner", gravcomp=1.0)
+    # The free root carries only the welds' anchor (the hand hangs off it on a slide), so
+    # it gets a small explicit inertia: the forearm's share of the person's arm.
+    partner = spec.worldbody.add_body(name="partner", gravcomp=1.0, mass=0.2,
+                                      inertia=[2e-4, 2e-4, 2e-4], explicitinertial=True)
     partner.add_freejoint(name="partner_free")
     add_partner_hand(spec, partner)
     # The Aero Hand's contacts are soft (tuned for 10 ms steps and light touches); a
     # firm handshake would sink through them. Give the partner's geoms priority and
-    # stiffer contact parameters so every robot<->partner contact uses these.
-    # The palm itself is soft skin (also what a Velostat layer presses against), so the
-    # palm-to-palm contact gets a compliant setting; fingers stay firm.
-    soft = {"partner_palm", "partner_heel", "partner_knuckles", "partner_thenar"}
+    # stiff contact parameters so every robot<->partner contact uses these. The palm's
+    # softness comes from its spring-loaded tissue pads (partner_hand.py), not from
+    # mushy contacts, so the contacts themselves can all be firm.
     for geom in spec.geoms:
         if geom.name.startswith("partner"):
             geom.priority = 1
-            if geom.name in soft:
-                geom.solref = [0.01, 1.0]
-                geom.solimp = [0.9, 0.95, 0.004, 0.5, 2.0]
-            else:
-                geom.solref = [0.005, 1.0]
-                geom.solimp = [0.95, 0.99, 0.001, 0.5, 2.0]
+            geom.solref = [0.005, 1.0]
+            geom.solimp = [0.95, 0.99, 0.001, 0.5, 2.0]
     # Realistic tendon force limit for the Aero Hand servos (the source model has none,
     # which lets a closing finger push with hundreds of newtons).
     for act in spec.actuators:
@@ -107,12 +114,15 @@ def build_model() -> mujoco.MjModel:
                                  name2=other, solref=[0.004, 1.0])
         weld.data = data
         weld.active = name == "partner_to_target"
-    # Extend the home keyframe with the partner's free joint (parked out of the way).
+    # Extend the home keyframe with the partner's free joint (parked out of the way);
+    # every other partner joint (fingers, press slide, palm pads) starts at zero.
     key = spec.key("home")
     start = approach_pos(1.0)
-    n_partner = len(partner_grip_targets(0.0))
-    key.qpos = list(key.qpos) + list(start) + list(mat2quat(SHAKE_ROT)) + [0.0] * n_partner
-    key.ctrl = list(key.ctrl) + [0.0] * n_partner
+    n_q = sum({mujoco.mjtJoint.mjJNT_HINGE: 1, mujoco.mjtJoint.mjJNT_SLIDE: 1}.get(j.type, 0)
+              for j in spec.joints if j.name.startswith("partner_"))
+    n_act = sum(a.name.startswith("act_partner_") for a in spec.actuators)
+    key.qpos = list(key.qpos) + list(start) + list(mat2quat(SHAKE_ROT)) + [0.0] * n_q
+    key.ctrl = list(key.ctrl) + [0.0] * n_act
     key.mpos = list(start)
     key.mquat = list(mat2quat(SHAKE_ROT))
     return spec.compile()
@@ -193,7 +203,10 @@ def approach_pos(a):
 
 def shake_offset(s):
     """Vertical shake displacement at shake-phase progress s in [0, 1]."""
-    envelope = np.sin(np.pi * s) ** 0.5   # ease in/out of the pumping
+    # Min-jerk ramps over the first and last half-stroke: the pumping eases in and out
+    # with continuous acceleration (sqrt(sin) jerked at the start and end).
+    ramp = 2 * SHAKE_CYCLES
+    envelope = smooth(s * ramp) * smooth((1.0 - s) * ramp)
     return SHAKE_AMPLITUDE * envelope * np.sin(2 * np.pi * SHAKE_CYCLES * s)
 
 
@@ -218,6 +231,9 @@ class Handshake:
         self.q_last = self.q_shake.copy()
         self.eq_target = m.equality("partner_to_target").id
         self.eq_robot = m.equality("partner_to_robot").id
+        self.press = m.actuator(PRESS_ACT).id
+        self.partner_grip = [i for i in range(m.nu)
+                             if m.actuator(i).name.startswith("act_partner_") and i != self.press]
 
     def phase(self, t):
         t = t % CYCLE
@@ -261,27 +277,30 @@ class Handshake:
         q, hand, ppos, pquat, name = self.targets(t)
         d.ctrl[:7] = q
         d.ctrl[7:14] = hand
-        # Partner grips back on the same schedule as the robot hand.
+        # The person closes before the robot hand does and opens after it.
         _, s = self.phase(t)
-        level = {"grip": smooth(s), "shake": 1.0, "hold": 1.0, "release": 1.0 - smooth(s)}.get(name, 0.0)
-        d.ctrl[14:] = partner_grip_targets(level)
+        level = 1.0 if name in GRIPPED else {"partner_grip": smooth(s),
+                                             "partner_release": 1.0 - smooth(s)}.get(name, 0.0)
+        d.ctrl[self.partner_grip] = partner_grip_targets(level)
+        # The person presses their palm in while gripping (force-limited, see partner_hand).
+        d.ctrl[self.press] = level * PRESS_TARGET
         return name
 
     def update_partner(self, d, t):
         """Move the partner (call every physics step).
 
-        Approach/retreat: welded to the scripted mocap target. Grip..release: welded to the
-        robot bracket, so the person's arm goes along with the shake. Both welds overlap
-        during grip and release for a smooth handover. (Driving the partner on its own
+        Approach/retreat: welded to the scripted mocap target. partner_grip..partner_release:
+        welded to the robot bracket, so the person's arm goes along with the shake. Both
+        welds overlap while gripping and releasing for a smooth handover. (Driving the partner on its own
         path while the fingers are interlocked makes them snag and jerk.)
         """
         name, s = self.phase(t)
         approach = {"partner_in": 1.0 - smooth(s), "partner_out": smooth(s)}.get(
-            name, 0.0 if name in ("grip", "shake", "hold", "release") else 1.0)
+            name, 0.0 if name in HOLDING else 1.0)
         d.mocap_pos[0] = approach_pos(approach)
         d.mocap_quat[0] = SHAKE_QUAT
         d.eq_active[self.eq_target] = name not in ("shake", "hold")
-        d.eq_active[self.eq_robot] = name in ("grip", "shake", "hold", "release")
+        d.eq_active[self.eq_robot] = name in HOLDING
 
 
 def reset(m, d):
@@ -293,10 +312,31 @@ def reset(m, d):
 CTRL_EVERY = 10   # physics steps per control/sensor update (20 ms -> 50 Hz)
 
 
-class Session:
-    """Model + controller + tactile skin, stepped together."""
+def phase_start(name):
+    """Time at which phase `name` begins within a cycle."""
+    t = 0.0
+    for n, dur in PHASES:
+        if n == name:
+            return t
+        t += dur
+    raise KeyError(name)
 
-    def __init__(self):
+
+PHASE_DUR = dict(PHASES)
+
+
+class Session:
+    """Model + controller + tactile skin, stepped together.
+
+    The handshake runs on its own clock `t`, separate from sim time, so it can be
+    started and stopped:
+      autostart=True  (record/check): loops handshakes from the first step.
+      autostart=False (viewer): starts idle at home until start() is called.
+    stop() winds down gracefully (release, partner leaves, arm returns home) and then
+    idles; start() during a wind-down resumes looping.
+    """
+
+    def __init__(self, autostart=True):
         self.m = build_model()
         self.d = mujoco.MjData(self.m)
         self.hs = Handshake(self.m)
@@ -304,43 +344,187 @@ class Session:
         self.ctrl_dt = CTRL_EVERY * self.m.opt.timestep
         reset(self.m, self.d)
         self.i = 0
+        self.t = 0.0                  # handshake clock (s into the current cycle)
+        self.running = autostart
+        self.stopping = False
+        self.jump = None              # (when t >= this, jump t to this) during stop
         self.phase = PHASES[0][0]
         self.frame = self.skin.read(self.d, 0.0)
+
+    # --- start / stop ---
+    @property
+    def status(self):
+        if not self.running:
+            return "idle"
+        return f"{self.phase} (stopping)" if self.stopping else self.phase
+
+    def start(self):
+        if not self.running:
+            self.t = 0.0
+        self.running, self.stopping, self.jump = True, False, None
+
+    def stop(self):
+        if not self.running or self.stopping:
+            return
+        self.stopping = True
+        name, s = self.hs.phase(self.t)
+        mirror = {"reach": "return", "partner_in": "partner_out", "grip": "release",
+                  "partner_grip": "partner_release"}
+        if name in mirror:
+            # Reverse out: the mirrored phase at 1-s has the same pose (min-jerk is symmetric).
+            other = mirror[name]
+            self.t = phase_start(other) + (1.0 - s) * PHASE_DUR[other]
+        elif name == "shake":
+            # Finish the current half-stroke so the hands are back at the neutral height.
+            k = np.ceil(s * 2 * SHAKE_CYCLES - 1e-9) / (2 * SHAKE_CYCLES)
+            self.jump = (phase_start("shake") + k * PHASE_DUR["shake"], phase_start("release"))
+        elif name == "hold":
+            self.t = phase_start("release")
+        # release / partner_out / return / pause: already on the way out.
+
+    def toggle(self):
+        if self.running and not self.stopping:
+            self.stop()
+        else:
+            self.start()
+
+    def _advance(self):
+        if not self.running:
+            return
+        self.t += self.m.opt.timestep
+        if self.jump and self.t >= self.jump[0]:
+            self.t, self.jump = self.jump[1], None
+        if self.t >= CYCLE or (self.stopping and self.hs.phase(self.t)[0] == "pause"):
+            if self.stopping:
+                self.running, self.stopping, self.t = False, False, 0.0
+            else:
+                self.t -= CYCLE
 
     def step(self):
         m, d = self.m, self.d
         if self.i % CTRL_EVERY == 0:
-            self.phase = self.hs.apply(d, d.time)
-            name, s = self.hs.phase(d.time)
+            self.phase = self.hs.apply(d, self.t)
+            name, s = self.hs.phase(self.t)
             if name == "reach" and s * PHASES[0][1] < self.ctrl_dt:
-                self.skin.rezero()            # unloaded, between handshakes
+                self.skin.rezero()            # unloaded, between handshakes / while idle
             self.frame = self.skin.read(d, self.ctrl_dt)
-        self.hs.update_partner(d, d.time)
+        self.hs.update_partner(d, self.t)
         mujoco.mj_step(m, d)
+        self._advance()
         self.i += 1
         return self.i % CTRL_EVERY == 0       # True right after a sensor update
 
 
-def run_viewer():
+class ControlWindow:
+    """Tk window with Start/Stop and (optionally) the live tactile readout panel, the
+    same panel as the --record --tactile video. Tk runs on the main thread; the MuJoCo
+    passive viewer has its own thread, so both windows stay responsive.
+    Keys (this window): Space/Enter = start/stop."""
+
+    def __init__(self, ses, panel=True, height=720, width=560):
+        import tkinter as tk
+
+        self.tk, self.ses = tk, ses
+        self.readout = None
+        self.root = tk.Tk()
+        self.root.title("Handshake control" + (" + tactile readout" if panel else ""))
+        self.root.geometry("+40+40")
+        self.root.configure(bg="#171a21")
+        self.root.protocol("WM_DELETE_WINDOW", self.close)
+
+        bar = tk.Frame(self.root, bg="#171a21", padx=10, pady=8)
+        bar.pack(fill="x")
+        btn = dict(width=9, font=("Segoe UI", 11, "bold"), relief="flat", bd=0,
+                   activeforeground="white", fg="white", cursor="hand2")
+        self.b_start = tk.Button(bar, text="Start", bg="#2e8b57", activebackground="#3aa86a",
+                                 command=ses.start, **btn)
+        self.b_stop = tk.Button(bar, text="Stop", bg="#b8433f", activebackground="#d0524d",
+                                command=ses.stop, **btn)
+        self.b_start.pack(side="left", padx=(0, 8))
+        self.b_stop.pack(side="left")
+        self.status = tk.Label(bar, text="", bg="#171a21", fg="#eceef2", anchor="w",
+                               font=("Segoe UI", 11), padx=12)
+        self.status.pack(side="left", fill="x", expand=True)
+        for key in ("<space>", "<Return>"):
+            self.root.bind(key, lambda e: ses.toggle())
+
+        self.label = None
+        if panel:
+            from readout import ReadoutRenderer
+            self.readout = ReadoutRenderer(ses.m, height, 0, width)
+            self.label = tk.Label(self.root, bd=0)
+            self.label.pack()
+        self.photo = None
+        self.open = True
+
+    def show(self):
+        if not self.open:
+            return
+        ses = self.ses
+        self.status.configure(text=ses.status)
+        idle_or_stopping = not ses.running or ses.stopping
+        self.b_start.configure(state="normal" if idle_or_stopping else "disabled")
+        self.b_stop.configure(state="disabled" if idle_or_stopping else "normal")
+        if self.readout:
+            rgb = self.readout.render_panel(ses.frame, ses.status)
+            h, w, _ = rgb.shape
+            ppm = b"P6 %d %d 255\n" % (w, h) + rgb.tobytes()
+            self.photo = self.tk.PhotoImage(data=ppm, format="PPM")
+            self.label.configure(image=self.photo)
+
+    def pump(self):
+        if self.open:
+            try:
+                self.root.update()
+            except self.tk.TclError:
+                self.open = False
+
+    def close(self):
+        if self.open:
+            self.open = False
+            self.root.destroy()
+        if self.readout:
+            self.readout.close()
+            self.readout = None
+
+
+def run_viewer(panel=True, autostart=False, ui_hz=20.0):
     import time
 
     import mujoco.viewer
 
-    ses = Session()
+    ses = Session(autostart=autostart)
     m, d = ses.m, ses.d
-    with mujoco.viewer.launch_passive(m, d) as v:
+    win = ControlWindow(ses, panel)
+    toggles = []   # Enter in the 3D viewer (key callback runs on the viewer thread)
+
+    def on_key(key):
+        if key == 257:   # GLFW_KEY_ENTER
+            toggles.append(1)
+
+    next_ui = 0.0
+    with mujoco.viewer.launch_passive(m, d, key_callback=on_key) as v:
         v.cam.lookat[:] = [0.45, 0.0, 0.45]
         v.cam.distance, v.cam.azimuth, v.cam.elevation = 1.5, 135, -15
         v.opt.sitegroup[4] = 1   # show the tactile taxels/pads, tinted by force
+        print("Start/Stop: buttons in the control window, Space there, or Enter in the 3D viewer")
         start = time.perf_counter()
         while v.is_running():
+            while toggles:
+                toggles.pop()
+                ses.toggle()
             if ses.step():
                 ses.skin.colorize(ses.frame)
             if ses.i % 8 == 0:
                 v.sync()
+            if d.time >= next_ui:
+                win.show()
+                next_ui = d.time + 1.0 / ui_hz
             lag = d.time - (time.perf_counter() - start)
             if lag > 0:
+                win.pump()
                 time.sleep(lag)
+    win.close()
 
 
 def write_png(path, rgb):
@@ -381,7 +565,7 @@ def run_check():
     while d.time < CYCLE:
         sensed = ses.step()
         name = ses.phase
-        _, s = hs.phase(d.time)
+        _, s = hs.phase(ses.t)
         if sensed:
             f = ses.frame
             log.write(f"{f.time:.3f},{name},{f.palm_total:.3f},{f.palm_active},{np.nanmax(f.palm):.3f},"
@@ -396,14 +580,16 @@ def run_check():
                 t["slip"][p] += f.slip[p]
         st = stats.setdefault(name, {"pos_err": 0.0, "touch": 0, "n": 0, "max_pen": 0.0})
         st["n"] += 1
-        if name in ("partner_in", "grip", "shake", "hold"):
+        if name in ("partner_in", "partner_grip", "grip", "shake", "hold"):
             st["pos_err"] = max(st["pos_err"], float(np.linalg.norm(d.xpos[bid] - d.xpos[pid])))
         touching = set()
         for c in d.contact[:d.ncon]:
-            pair = {c.geom1, c.geom2}
-            if m.geom_bodyid[c.geom1] == pid or m.geom_bodyid[c.geom2] == pid:
-                other = (pair - {g for g in pair if m.geom_bodyid[g] == pid})
-                touching |= {m.body(m.geom_bodyid[g]).name for g in other & finger_geoms}
+            in1 = m.body_rootid[m.geom_bodyid[c.geom1]] == pid
+            in2 = m.body_rootid[m.geom_bodyid[c.geom2]] == pid
+            if in1 != in2:
+                other = c.geom2 if in1 else c.geom1
+                if other in finger_geoms:
+                    touching.add(m.body(m.geom_bodyid[other]).name)
                 st["max_pen"] = max(st["max_pen"], -c.dist)
         st["touch"] = max(st["touch"], len(touching))
         if name in snap_at and name not in snaps and s >= snap_at[name]:
@@ -493,6 +679,10 @@ if __name__ == "__main__":
     ap.add_argument("--record", nargs="?", const=os.path.join(HERE, "handshake.mp4"), metavar="FILE.mp4",
                     help="render an MP4 instead of opening the viewer (default: handshake.mp4)")
     ap.add_argument("--cycles", type=int, default=1, help="handshake cycles to record")
+    ap.add_argument("--no-panel", action="store_true",
+                    help="viewer: control window without the tactile readout panel")
+    ap.add_argument("--autostart", action="store_true",
+                    help="viewer: start handshaking right away instead of waiting for Start")
     ap.add_argument("--tactile", action="store_true",
                     help="with --record: close-up + live tactile readout panel (1600x720)")
     args = ap.parse_args()
@@ -504,4 +694,4 @@ if __name__ == "__main__":
     elif args.check:
         run_check()
     else:
-        run_viewer()
+        run_viewer(panel=not args.no_panel, autostart=args.autostart)

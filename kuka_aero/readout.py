@@ -46,13 +46,16 @@ class ReadoutRenderer:
                            txt, "", self.con)
 
     def render(self, d, cam, opt, frame, phase):
+        """3D view (skipped when width_3d == 0) + tactile panel, as an RGB array."""
         r = self.r
-        r.update_scene(d, cam, opt)
+        if self.w3:
+            r.update_scene(d, cam, opt)
         if r._gl_context:
             r._gl_context.make_current()
         self.con = con = r._mjr_context
         mujoco.mjr_setBuffer(mujoco.mjtFramebuffer.mjFB_OFFSCREEN, con)
-        mujoco.mjr_render(mujoco.MjrRect(0, 0, self.w3, self.h), r.scene, con)
+        if self.w3:
+            mujoco.mjr_render(mujoco.MjrRect(0, 0, self.w3, self.h), r.scene, con)
         self._fill(0, 0, self.wp, self.h, BG)
 
         self._text(20, 14, 520, 40, f"TACTILE   t={frame.time:5.2f}s   {phase}")
@@ -119,3 +122,7 @@ class ReadoutRenderer:
         buf = np.empty((self.h, self.w3 + self.wp, 3), np.uint8)
         mujoco.mjr_readPixels(buf, None, mujoco.MjrRect(0, 0, self.w3 + self.wp, self.h), con)
         return np.flipud(buf)
+
+    def render_panel(self, frame, phase):
+        """Only the tactile panel (construct with width_3d=0)."""
+        return self.render(None, None, None, frame, phase)
