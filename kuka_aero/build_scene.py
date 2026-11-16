@@ -8,6 +8,7 @@ Writes scene.xml next to this script. Re-run after updating either source model.
 """
 
 import os
+import re
 
 import mujoco
 import numpy as np
@@ -109,10 +110,24 @@ def build() -> mujoco.MjSpec:
     return iiwa
 
 
+def relative_mesh_paths(xml: str, xml_path: str) -> str:
+    """Rewrite absolute mesh file paths as paths relative to the written scene.xml, so the
+    file is portable and holds no machine-specific paths."""
+    base = os.path.dirname(os.path.abspath(xml_path))
+
+    def rel(m):
+        path = m.group(1)
+        if not os.path.isabs(path):
+            return m.group(0)
+        return 'file="' + os.path.relpath(path, base).replace(os.sep, "/") + '"'
+
+    return re.sub(r'file="([^"]*)"', rel, xml)
+
+
 def main() -> None:
     spec = build()
     model = spec.compile()
-    xml = spec.to_xml()
+    xml = relative_mesh_paths(spec.to_xml(), OUT_XML)
     with open(OUT_XML, "w", encoding="utf-8") as f:
         f.write(xml)
     print(f"wrote {OUT_XML}")
